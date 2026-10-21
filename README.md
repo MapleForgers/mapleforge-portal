@@ -14,6 +14,7 @@ Working shared features:
 - Member profiles, skills, services and portal display names.
 - Available skills and resources, offers and requests, availability and status.
 - A skill category index with counts, grouped listings and filtering.
+- A separate Project Framework discussion draft with seven phases and shared feedback.
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
 - Browser Back/Forward navigation synchronized with portal navigation controls.
 
@@ -181,3 +182,5 @@ Review every staged diff. Do not use `git add -f` to bypass these exclusions.
 No publishing or deployment is automatic. Pushing to GitHub is a separate step.
 Before doing so, verify the target repository, its visibility, its existing history
 and the exact changes being sent.
+
+The Project Framework page is a standalone discussion preview. It does not enable ranked ballots or alter existing idea stages. Hosted feedback targets the separately provisioned `Framework` record `project-framework-v01`; its source link is stored with that private runtime record. A clean static build shows the framework without private discussion content.

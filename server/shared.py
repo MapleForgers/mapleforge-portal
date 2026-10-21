@@ -1,7 +1,7 @@
 """Transactional shared boards. Identity always comes from the authenticated session."""
 import json, time, secrets
 from datetime import datetime, timezone
-KINDS={'Ideas','Features','Tasks','Governance','Skills exchange','Resource sharing'}
+KINDS={'Ideas','Features','Tasks','Governance','Skills exchange','Resource sharing','Framework'}
 class Problem(Exception):
     def __init__(self,status,message):self.status=status;self.message=message
 
@@ -64,7 +64,7 @@ def mutate(c,user,data,config):
         c.execute('INSERT INTO preferences VALUES(?,?) ON CONFLICT(uid) DO UPDATE SET payload=excluded.payload',(uid,json.dumps(valid)));return {}
     if kind not in KINDS:raise Problem(400,'Unknown board.')
     if op=='save':
-        if kind=='Ideas':raise Problem(400,'Use the idea editor.')
+        if kind in ('Ideas','Framework'):raise Problem(400,'Use the corresponding idea or framework page.')
         old=record(c,kind,id) if id else None
         if old and not allowed(old,user,config):raise Problem(403,'Only the author or a community maintainer can edit this item.')
         if old and data.get('revision')!=old['revision']:raise Problem(409,'Someone updated this item. Refresh it before saving your changes.')

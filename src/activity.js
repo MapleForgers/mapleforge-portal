@@ -298,6 +298,7 @@ function renderActivityRows() {
           openExchange(event.target);
         else if (event.section === "Resource sharing")
           openResource(event.target);
+        else if (event.section === "Framework") switchSection("framework");
         else openGovernance(event.target);
       }),
   );

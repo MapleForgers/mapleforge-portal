@@ -3372,3 +3372,30 @@ summary:focus-visible {
   font-size: 0.8em;
   margin-left: 6px;
 }
+.framework-page {
+  max-width: 1100px;
+}
+.framework-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.framework-phase {
+  margin: 0;
+}
+.framework-phase h2 {
+  font-family: inherit;
+  font-size: 1.25em;
+  scroll-margin-top: 90px;
+}
+.framework-phase ul {
+  padding-left: 20px;
+}
+.framework-phase li {
+  margin: 7px 0;
+}
+.framework-phase h2:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}

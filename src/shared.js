@@ -88,6 +88,9 @@ if (window.MF) {
   M.hydrate = async () => {
     sharedData = await M.api("/api/shared");
     const records = sharedData.records;
+    M.framework = records.find(
+      (r) => r.board === "Framework" && r.id === "project-framework-v01",
+    );
     state.custom = [];
     state.mySkillProfile = null;
     state.exchange = records.filter((r) => r.board === "Skills exchange");
