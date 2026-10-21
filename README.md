@@ -9,10 +9,13 @@ This is a development preview, not a complete community platform.
 Working shared features:
 
 - Discord sign-in with a MapleForge server-membership check.
-- Member-owned idea posts and edits.
-- Comments on idea and feature threads.
+- Member-owned idea posts and edits with structured proposal fields.
+- Shared comments on ideas, features, tasks, governance, skills and resources.
 - Member profiles, skills, services and portal display names.
+- Available skills and resources, offers and requests, availability and status.
+- A skill category index with counts, grouped listings and filtering.
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
+- Browser Back/Forward navigation synchronized with portal navigation controls.
 
 Ideas, comments, profiles, votes, idea memberships and contributions, feature requests, task records, governance proposals, and activity now use shared SQLite storage. Bookmarks, follows, and appearance preferences belong to the signed-in account. Shared views refresh every 15 seconds while visible. Unsent form drafts stay in session storage until submitted; earlier browser-only drafts can be reviewed and published explicitly.
 
@@ -100,3 +103,81 @@ Members first enter the private preview using the shared community word, then se
 - Complete accessibility, concurrency and load testing.
 
 Do not describe this preview as fully production-ready. Do not commit secrets, private data, generated private builds or runtime databases.
+
+## Local Git and collaboration
+
+This directory is the canonical source repository. Edit files in `src/`,
+`server/`, `public/` and `build.py` here, then build. Do not edit generated
+`dist/` files or copy an older scratch implementation over reviewed source.
+
+The first local source snapshot is tagged `baseline-2026-10-21`. Earlier work
+was not recorded as individual local commits. The baseline is a sanitized
+source snapshot, not a byte-for-byte backup of the live site, which also uses
+separately managed community content. This local history has no configured
+remote and has not been pushed. An existing GitHub repository has its own
+history; reconcile that history before connecting or publishing this one.
+Do not force-push this independent baseline over it.
+
+### Make a change
+
+```sh
+git status --short
+git switch -c feature/short-description
+# Edit source files, then build and check the affected behavior.
+python3 build.py
+git diff --check
+git diff
+# Stage only the intended source files and inspect them before committing.
+git add src/changed-file.js
+git diff --cached
+git commit -m "fix: describe the user-visible change"
+```
+
+Replace the example filename and branch name with the actual change. Keep each
+commit focused on one feature or fix. In the commit body, describe the reason,
+verification performed and any relevant limitations. Commit only after the
+change is ready to review. Use a merge or pull request when collaborating;
+avoid rewriting commits other people already use.
+
+The static local preview does not exercise production authentication or shared
+API writes. Test backend changes with a separate configuration and disposable
+database, never the live community database. Review ownership, input validation
+and persistence when changing shared writes. Test affected UI at narrow and wide
+widths and with enlarged text when changing layout.
+
+### Review history and recover code
+
+```sh
+git log --oneline --decorate
+git show baseline-2026-10-21 --stat
+git worktree add --detach ../mapleforge-baseline-review baseline-2026-10-21
+```
+
+The last command opens a separate checkout for inspecting the baseline without
+changing current work. To undo a specific committed change on your working
+branch, first ensure uncommitted work is saved, then use:
+
+```sh
+git revert <commit-id>
+```
+
+This records the reversal as a new commit. Rebuild and test it before deployment.
+A local Git revert does not alter the running server. Deployments need a separate
+backup, build, verification and rollout. Record the deployed commit ID in the
+private deployment log.
+
+Git covers code and required public assets only. Database rollback, uploaded
+content, member posts, Discord imports, server configuration and credentials
+require separate protected backups. Reverting code does not undo a database
+migration or restore member data. Confirm schema compatibility before rollback.
+
+### Keep the repository clean
+
+Never stage secrets, private imported content, databases, chat exports, session
+data, installation logs or generated private builds. `.gitignore` excludes common
+runtime and credential files, but it cannot recognize secrets pasted into source.
+Review every staged diff. Do not use `git add -f` to bypass these exclusions.
+
+No publishing or deployment is automatic. Pushing to GitHub is a separate step.
+Before doing so, verify the target repository, its visibility, its existing history
+and the exact changes being sent.
