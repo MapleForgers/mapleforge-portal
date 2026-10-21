@@ -1,4 +1,7 @@
 // Session navigation history for sections, details and editor tabs.
+const requestedPortalSection = new URL(location.href).searchParams.get(
+  "section",
+);
 const portalHistorySession =
   Date.now().toString(36) + Math.random().toString(36).slice(2);
 const portalTrail = [];
@@ -29,7 +32,11 @@ function rememberPortalPlace() {
     section: view,
   };
   if (portalTrailIndex === 0) history.replaceState(browserEntry, "");
-  else history.pushState(browserEntry, "");
+  else {
+    const route = new URL(location.href);
+    route.searchParams.set("section", view);
+    history.pushState(browserEntry, "", route);
+  }
 }
 function travelPortal(direction) {
   const next = portalTrailIndex + direction;
@@ -67,6 +74,7 @@ const tabsBeforeHistory = drawSectionTabs;
 drawSectionTabs = function () {
   rememberPortalPlace();
   tabsBeforeHistory();
+  document.title = tabLabel(activeSection) + " · MapleForge";
   const controls = document.createElement("div");
   controls.className = "portal-history";
   controls.setAttribute("role", "group");

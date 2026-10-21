@@ -144,7 +144,10 @@ if (location.hostname === "maple-forge.ca") {
       if (!host.isConnected) return;
       host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment"><strong>${memberName(c.author)}</strong><small> · ${esc(new Date(c.created * 1000).toLocaleString())}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">Add a comment<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : '<a class="btn" href="/auth/discord">Sign in with Discord to comment</a>'}`;
       let form = host.querySelector("form");
-      if (form) window.MF?.bindDraft?.(form);
+      if (form) {
+        form.id = "comments-" + target;
+        window.MF?.bindDraft?.(form);
+      }
       if (form)
         form.onsubmit = async (e) => {
           e.preventDefault();

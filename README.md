@@ -14,7 +14,7 @@ Working shared features:
 - Member profiles, skills, services and portal display names.
 - Available skills and resources, offers and requests, availability and status.
 - A skill category index with counts, grouped listings and filtering.
-- A separate Project Framework discussion draft with seven phases and shared feedback.
+- A separate Project Framework discussion draft with seven selectable phases, point-specific feedback prompts and saved phase conversations.
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
 - Browser Back/Forward navigation synchronized with portal navigation controls.
 
@@ -183,4 +183,6 @@ No publishing or deployment is automatic. Pushing to GitHub is a separate step.
 Before doing so, verify the target repository, its visibility, its existing history
 and the exact changes being sent.
 
-The Project Framework page is a standalone discussion preview. It does not enable ranked ballots or alter existing idea stages. Hosted feedback targets the separately provisioned `Framework` record `project-framework-v01`; its source link is stored with that private runtime record. A clean static build shows the framework without private discussion content.
+The Project Framework page is a standalone discussion preview. It does not enable ranked ballots or alter existing idea stages. Hosted feedback targets the separately provisioned `Framework` record `project-framework-v01`; its source link is stored with that private runtime record. Phase conversations use `project-framework-v01-phase-1` through `project-framework-v01-phase-7`, also provisioned as `Framework` records. General feedback remains on the original record. Point feedback includes the selected rule in the comment. A clean static build shows the framework without private discussion content.
+
+Section navigation writes `?section=<section-id>` into browser history and updates the page title. Loading that address restores the section after its renderer is registered. Detail and editor tabs keep their existing in-session history; their URLs identify the parent section, not unsaved editor contents.

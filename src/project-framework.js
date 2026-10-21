@@ -5,7 +5,10 @@
   link.dataset.view = "framework";
   link.textContent = "Project Framework";
   link.onclick = () => switchSection("framework");
-  document.querySelector('.nav [data-view="resource"]').after(link);
+  (
+    document.querySelector('.nav [data-view="resource"]') ||
+    document.querySelector('.nav [data-view="people"]')
+  ).after(link);
   const phases = [
     [
       "Ideate",
@@ -84,58 +87,111 @@
       ],
     ],
   ];
+  let selectedPhase = -1;
+  const questions = [
+    "What would make submitting an idea easy? How long should submissions stay open?",
+    "How should rankings and ties work? Is 48 hours enough for everyone to participate?",
+    "How can we challenge an idea constructively? What evidence should we ask for?",
+    "What should the final vote decide? How much parallel work can we realistically support?",
+    "What counts as enough interest to build? Who sets the target and commits to the team?",
+    "Which roles are essential? How should contributions, ownership and the sales target be agreed?",
+    "How do we decide to continue, pause or stop? What lessons should every project share?",
+  ];
   function renderFramework() {
+    const phase = phases[selectedPhase];
+    const name = phase ? phase[0] : "The whole framework";
+    const target =
+      "Framework:project-framework-v01" +
+      (phase ? "-phase-" + (selectedPhase + 1) : "");
     const source = window.MF?.framework?.source;
     const sourceLink =
       source && /^https:\/\/docs\.google\.com\/presentation\/d\//.test(source)
-        ? `<p><a href="${esc(source)}" target="_blank" rel="noopener noreferrer">Read the source presentation ↗</a></p>`
+        ? `<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">Source presentation ↗</a>`
         : "";
+    const chooser = (index, label) =>
+      `<button class="btn secondary ${selectedPhase === index ? "selected" : ""}" aria-pressed="${selectedPhase === index}" data-framework-phase="${index}">${esc(label)}</button>`;
     document.getElementById("main").innerHTML =
-      `<section class="framework-page"><div class="board-head"><div><span class="tag">Discussion draft · v0.1 · October 2026</span><h1>Project Framework</h1><p class="muted">From an idea to a working project, with room to learn and improve together.</p></div></div><p>This is a separate preview of the proposed framework. Its timings and decision rules are open for discussion. Existing idea stages and support votes continue to work as before.</p>${sourceLink}<nav class="filter-chips" aria-label="Framework phases">${phases.map(([name], i) => `<button class="btn secondary" data-framework-phase="${i}">${i + 1}. ${esc(name)}</button>`).join("")}</nav><div class="framework-phases">${phases.map(([name, timing, summary, points], i) => `<section class="panel framework-phase" id="framework-phase-${i}"><span class="small muted">PHASE ${i + 1} · ${esc(timing)}</span><h2 tabindex="-1">${esc(name)}</h2><p>${esc(summary)}</p><ul>${points.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></section>`).join("")}</div><section class="panel"><h2>The demand-test decision</h2><p><strong>Target reached by the deadline:</strong> proceed to Build MVP and iterate.</p><p><strong>Target not reached:</strong> skip the build and go to Review. Decide whether to improve the concept, return it to the backlog or stop.</p><p class="small muted">This is the proposed path, not an automatic gate currently enforced by the portal.</p></section><section class="panel"><h2>Decisions still open</h2><p>Submission window and calendar, cycle cadence, ranked-vote counting and ties, final vote duration, small rounds, parallel project capacity, demand-test targets, sales targets, ownership arrangements, issue management and shared templates.</p><p>The draft calls for group input and legal advice on contributor protection and ownership before those arrangements are finalized.</p></section><section class="panel"><h2>Keep, change or add</h2><p>What should stay? What would you change? What is missing? Feedback here is saved for the community.</p><div class="filter-chips">${["Keep", "Change", "Add"].map((t) => `<button class="btn secondary" data-framework-feedback="${t}">${t}</button>`).join("")}</div><div id="framework-comments"></div></section></section>`;
-    document.querySelectorAll("[data-framework-phase]").forEach(
-      (b) =>
-        (b.onclick = () => {
-          const h = document.querySelector(
-            "#framework-phase-" + b.dataset.frameworkPhase + " h2",
-          );
-          h.focus({ preventScroll: true });
-          h.scrollIntoView({
-            block: "start",
-            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "instant"
-              : "smooth",
-          });
-        }),
-    );
-    document.querySelectorAll("[data-framework-feedback]").forEach(
-      (b) =>
-        (b.onclick = () => {
-          if (!window.MF?.requireAccount()) return;
-          const type = b.dataset.frameworkFeedback;
-          MF.formTab(
-            "framework-feedback-" + type,
-            type + " feedback",
-            `<label class="form-field">Your feedback<textarea name="body" required maxlength="3800" placeholder="Which phase or rule are you commenting on?"></textarea></label>`,
-            (f) =>
-              MF.api("/api/comments", {
-                target: "Framework:project-framework-v01",
-                body: type + ": " + f.body,
-              }),
-          );
-        }),
-    );
-    if (window.MF)
-      MF.thread(
-        "Framework:project-framework-v01",
-        document.getElementById("framework-comments"),
+      `<section class="framework-page">
+      <div class="board-head"><div><span class="tag">Discussion draft · v0.1</span><h1>Project Framework</h1><p class="muted">Pick a phase. Question a rule. Help shape how we work together.</p></div>${sourceLink}</div>
+      <p class="small muted">These are proposals for discussion. Timings and decisions are not adopted or enforced yet.</p>
+      <nav class="filter-chips framework-picker" aria-label="Framework phases">${chooser(-1, "Overview")}${phases.map(([label], i) => chooser(i, i + 1 + ". " + label)).join("")}</nav>
+      <section class="panel framework-focus" aria-label="Selected framework phase">
+        <h2 tabindex="-1" id="framework-focus-title">${phase ? selectedPhase + 1 + ". " : ""}${esc(name)}</h2>
+        ${phase ? `<span class="tag">${esc(phase[1])}</span><p>${esc(phase[2])}</p><ul class="framework-points">${phase[3].map((point, i) => `<li><span>${esc(point)}</span><button class="btn secondary" data-framework-point="${i}">Discuss this point</button></li>`).join("")}</ul>` : `<p>Follow an idea from its first pitch through community review, a demand test and a working project. Open any phase to discuss its details.</p><div class="framework-overview">${phases.map(([label, timing, summary], i) => `<button class="panel" data-framework-phase="${i}"><strong>${i + 1}. ${esc(label)}</strong><span>${esc(summary)}</span><small>${esc(timing)} · Open discussion →</small></button>`).join("")}</div><p><strong>Demand test:</strong> reach the agreed target by the deadline to proceed to building. Otherwise, go to Review and decide whether to improve, backlog or stop.</p>`}
+        <div class="framework-prompt"><strong>Start the discussion</strong><p>${esc(phase ? questions[selectedPhase] : "What should we keep, change or add? Is anything missing between these phases? Which decisions do we need to agree on first?")}</p></div>
+        <div class="filter-chips">${["Keep", "Change", "Add", "Question"].map((type) => `<button class="btn secondary" data-framework-feedback="${type}">${type === "Question" ? "Ask a question" : type + " something"}</button>`).join("")}</div>
+        <p class="small muted">Feedback is shared with everyone in this ${phase ? "phase" : "general"} conversation. Use “Discuss this point” to include the rule you mean.</p>
+        <div id="framework-comments"></div>
+      </section>
+      <nav class="filter-chips" aria-label="Browse framework">${selectedPhase >= 0 ? chooser(selectedPhase - 1, "← " + (selectedPhase === 0 ? "Overview" : "Previous phase")) : ""}${selectedPhase < phases.length - 1 ? chooser(selectedPhase + 1, selectedPhase < 0 ? "Start with Ideate →" : "Next phase →") : ""}</nav>
+    </section>`;
+    document.querySelectorAll("[data-framework-phase]").forEach((button) => {
+      button.onclick = () => {
+        selectedPhase = Number(button.dataset.frameworkPhase);
+        renderFramework();
+        document
+          .getElementById("framework-focus-title")
+          .focus({ preventScroll: true });
+      };
+    });
+    function feedback(type, pointIndex) {
+      if (!window.MF?.requireAccount()) return;
+      const point = pointIndex === undefined ? "" : phase[3][pointIndex];
+      MF.formTab(
+        "framework-feedback-" +
+          selectedPhase +
+          "-" +
+          type +
+          "-" +
+          (pointIndex ?? "general"),
+        type + ": " + name,
+        `${point ? `<p><strong>Discussing:</strong> ${esc(point)}</p>` : ""}<label class="form-field">Your feedback<textarea name="body" required maxlength="3500" placeholder="Share your reasoning, suggest an alternative, or ask a question."></textarea></label>`,
+        (f) =>
+          MF.api("/api/comments", {
+            target,
+            body: type + (point ? " · " + point : "") + ":\n" + f.body,
+          }),
       );
+    }
+    document
+      .querySelectorAll("[data-framework-feedback]")
+      .forEach(
+        (button) =>
+          (button.onclick = () => feedback(button.dataset.frameworkFeedback)),
+      );
+    document
+      .querySelectorAll("[data-framework-point]")
+      .forEach(
+        (button) =>
+          (button.onclick = () =>
+            feedback("Discuss", Number(button.dataset.frameworkPoint))),
+      );
+    const host = document.getElementById("framework-comments");
+    if (window.MF) MF.thread(target, host);
     else
-      document.getElementById("framework-comments").textContent =
-        "Shared feedback is available in the hosted portal after signing in with Discord.";
+      host.textContent =
+        "Shared discussions are available in the hosted portal after signing in with Discord.";
   }
   const beforeFramework = render;
   render = function () {
     beforeFramework();
     if (view === "framework") renderFramework();
   };
+}
+
+// Restore a shared section link after all section renderers are registered.
+if (
+  requestedPortalSection &&
+  Object.prototype.hasOwnProperty.call(sectionLabels, requestedPortalSection) &&
+  requestedPortalSection !== "workspace"
+) {
+  portalTravel = true;
+  try {
+    switchSection(requestedPortalSection);
+  } finally {
+    portalTravel = false;
+  }
+  portalTrail.length = 0;
+  portalTrailIndex = -1;
+  drawSectionTabs();
 }

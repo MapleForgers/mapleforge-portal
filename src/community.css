@@ -3399,3 +3399,63 @@ summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
+
+/* Focused framework conversations, with accessible compact phase controls. */
+.framework-picker .selected {
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+}
+.framework-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+.framework-overview button {
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  margin: 0;
+  padding: 14px;
+}
+.framework-overview button span,
+.framework-overview button small {
+  display: block;
+  margin-top: 7px;
+}
+.framework-overview button small {
+  opacity: 0.8;
+}
+.framework-points {
+  list-style: none;
+  padding: 0;
+}
+.framework-points li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.framework-points li span {
+  min-width: 0;
+}
+.framework-points button {
+  flex-shrink: 0;
+}
+.framework-prompt {
+  border-left: 3px solid currentColor;
+  padding: 8px 14px;
+  margin: 16px 0;
+}
+.framework-prompt p {
+  margin: 6px 0;
+}
+@media (max-width: 600px) {
+  .framework-points li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
