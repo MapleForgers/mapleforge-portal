@@ -1,0 +1,9 @@
+/dist/
+/private/
+.env
+.env.*
+*.pem
+*.key
+*.sqlite*
+__pycache__/
+*.pyc
