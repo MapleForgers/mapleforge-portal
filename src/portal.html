@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MapleForge · Community workshop</title>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <style>
+      __STYLES__
+    </style>
+  </head>
+  <body>
+    <div id="entry" class="entry">
+      <section class="entry-left">
+        <div class="brand">
+          <span class="mark" data-leaf></span><span>MapleForge</span>
+        </div>
+        <div>
+          <div class="eyebrow" style="color: #d8ad76">
+            A place to build together
+          </div>
+          <h1>
+            Good ideas.<br />Different skills.<br /><em>Shared possibility.</em>
+          </h1>
+          <p>
+            Our community workshop for turning a conversation into a concept,
+            and a concept into something worth building.
+          </p>
+        </div>
+        <div class="foot">MAPLE-FORGE.CA · MADE FOR OUR COMMUNITY</div>
+      </section>
+      <section class="entry-right">
+        <div class="entry-box">
+          <span class="tag">MEMBERS' SPACE</span>
+          <h2>Welcome to the workshop.</h2>
+          <p>
+            Bring your ideas, your questions, and whatever you do best. There’s
+            a place for all of it here.
+          </p>
+          <button class="btn" id="discord-entry">
+            Continue with Discord <span>↗</span>
+          </button>
+          <p class="tiny">
+            For MapleForge community members. Use your Discord identity without
+            creating another password.
+          </p>
+          <div id="access-status" class="access-status hidden">
+            <strong>Discord sign-in is planned for launch.</strong>
+            <p>
+              The live portal will verify your MapleForge membership. No
+              credentials are collected in this offline preview.
+            </p>
+          </div>
+          <hr />
+          <div class="eyebrow muted">Offline design preview</div>
+          <p class="tiny">
+            Explore as a demo member. Votes, comments and new ideas stay in this
+            browser and are not shared.
+          </p>
+          <button class="btn secondary" id="demo-entry">
+            Explore the prototype <span>→</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div id="app" class="hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="mark" data-leaf></span><span>MapleForge</span>
+        </div>
+        <div class="space-name">
+          <strong>Community workshop</strong>Our ideas, taking shape.
+        </div>
+        <nav class="nav" aria-label="Main navigation">
+          <button data-view="ideas" aria-label="Idea board" class="active">
+            <span data-icon="grid"></span><span>Idea board</span
+            ><span class="nav-count" id="nav-count">17</span></button
+          ><button data-view="contributions" aria-label="My contributions">
+            <span data-icon="people"></span
+            ><span>My contributions</span></button
+          ><button data-view="process" aria-label="How we work">
+            <span data-icon="path"></span><span>How we work</span></button
+          ><button data-view="workspace" aria-label="Workspace notes">
+            <span data-icon="book"></span><span>Workspace notes</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="sidebar-note">
+            Small beginnings.<span>Things we build together.</span>
+          </div>
+          <div class="profile">
+            <span class="avatar">DM</span>
+            <div>Demo member<small>Offline preview</small></div>
+            <button
+              id="exit"
+              title="Return to welcome screen"
+              aria-label="Return to welcome screen"
+            >
+              ↪
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div class="shell">
+        <header class="topbar">
+          <div class="breadcrumb">
+            Our community <span style="margin: 0 10px; color: #b6bfac">/</span>
+            <b id="crumb">Idea board</b>
+          </div>
+          <div class="stack">
+            <span class="small muted"
+              ><span class="dot"></span>Members' space</span
+            ><span class="demo-label">OFFLINE DEMO</span>
+          </div>
+        </header>
+        <main class="content" id="main"></main>
+      </div>
+    </div>
+    <dialog class="dialog" id="detail-dialog" aria-labelledby="detail-heading">
+      <div class="dialog-inner" id="detail-content"></div>
+    </dialog>
+    <dialog class="dialog" id="submit-dialog" aria-labelledby="submit-heading">
+      <div class="dialog-inner">
+        <div class="dialog-top">
+          <span class="eyebrow muted">Add to the workshop</span
+          ><button
+            class="close"
+            data-close="submit-dialog"
+            aria-label="Close idea form"
+          >
+            ×
+          </button>
+        </div>
+        <h2 id="submit-heading">What are you thinking about?</h2>
+        <p class="muted small">
+          One idea at a time. A rough beginning is enough.
+        </p>
+        <form id="idea-form">
+          <div class="form-grid">
+            <label class="form-field full"
+              >Project name<input
+                name="title"
+                required
+                maxlength="100"
+                placeholder="A short, memorable working title" /></label
+            ><label class="form-field full"
+              >The idea<textarea
+                name="summary"
+                required
+                maxlength="1000"
+                placeholder="Explain it in two or three sentences"
+              ></textarea></label
+            ><label class="form-field"
+              >Problem or opportunity<textarea
+                name="problem"
+                required
+                maxlength="1200"
+                placeholder="What could this solve or improve?"
+              ></textarea></label
+            ><label class="form-field"
+              >Who is it for?<textarea
+                name="audience"
+                required
+                maxlength="600"
+                placeholder="Who would use it or benefit?"
+              ></textarea></label
+            ><label class="form-field"
+              >What makes it different?<textarea
+                name="difference"
+                maxlength="1000"
+                placeholder="Alternatives, advantages, or questions"
+              ></textarea></label
+            ><label class="form-field"
+              >What would we need?<textarea
+                name="resources"
+                maxlength="1000"
+                placeholder="Skills, collaborators, time or tools"
+              ></textarea></label
+            ><label class="form-field full"
+              >The first step<textarea
+                name="firstStep"
+                required
+                maxlength="1000"
+                placeholder="The smallest way to test whether it is useful"
+              ></textarea></label
+            ><label class="form-field"
+              >Theme<select name="category" id="new-category"></select></label
+            ><label class="form-field"
+              >Reference link (optional)<input
+                name="reference"
+                type="url"
+                placeholder="https://..."
+            /></label>
+          </div>
+          <div class="form-actions">
+            <span class="small muted"
+              >Posting as Demo member · saved locally</span
+            ><button class="btn orange" type="submit">
+              Add idea to the board →
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script id="seed" type="application/json">
+      __IDEAS__
+    </script>
+    <script>
+      __SCRIPTS__;
+    </script>
+  </body>
+</html>
