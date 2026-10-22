@@ -882,7 +882,7 @@
         langs.setAttribute("role", "group");
         langs.setAttribute("aria-label", "Language / Langue");
         langs.innerHTML =
-          '<span class="language-label">Language / Langue</span><button type="button" lang="en" data-language="en" aria-label="English">EN</button><button type="button" lang="fr" data-language="fr" aria-label="Français">FR</button>';
+          '<button type="button" lang="en" data-language="en" aria-label="English">English</button><button type="button" lang="fr" data-language="fr" aria-label="Français">Français</button>';
         langs.querySelectorAll("button").forEach(
           (b) =>
             (b.onclick = () => {

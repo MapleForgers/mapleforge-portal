@@ -3886,3 +3886,32 @@ body[data-theme="night"] .sidebar .brand::after {
   width:106.949%;
   height:136.535%;
 }
+
+/* A stable footer, with navigation scrolling independently above it. */
+@media(min-width:761px) {
+  body .sidebar { height:100dvh; box-sizing:border-box; overflow:hidden; padding-bottom:12px; }
+  body .sidebar > .nav { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; margin-bottom:12px; scrollbar-width:thin; }
+  body .sidebar-bottom { flex:0 0 auto; margin-top:auto; width:100%; }
+}
+body .sidebar-bottom .member-account { padding:10px 0 9px; margin:0; border-top:1px solid #ffffff25; border-bottom:0; }
+body .sidebar-bottom .member-account > strong { font-size:15px; }
+body .sidebar-bottom .member-account small { font-size:12px; margin:3px 0 7px; opacity:.8; }
+body .sidebar-bottom .member-account > div { gap:14px; }
+body .sidebar-bottom .member-account > div .btn { background:transparent !important; border:0 !important; border-radius:0 !important; padding:3px 0; min-height:28px; font-size:12px; font-weight:600; box-shadow:none; color:inherit !important; }
+body .sidebar-bottom .member-account > div .btn:hover { text-decoration:underline; }
+body #sidebar-preferences { gap:7px; padding-top:6px; border-top:1px solid #ffffff25; }
+body #sidebar-preferences #sidebar-settings summary { display:flex; align-items:center; justify-content:space-between; list-style:none; font-size:14px; font-weight:600; padding:7px 0; }
+body #sidebar-preferences #sidebar-settings summary::-webkit-details-marker { display:none; }
+body #sidebar-preferences #sidebar-settings summary::after { content:'›'; font-size:21px; line-height:1; opacity:.7; }
+body #sidebar-preferences #sidebar-settings[open] summary::after { content:'‹'; }
+body #sidebar-preferences .language-toggle { display:flex; padding:3px; gap:3px; border:0; border-radius:7px; background:#ffffff0d; }
+body #sidebar-preferences .language-toggle button { flex:1; padding:6px 3px; font-size:12px; border:0; border-radius:5px; color:inherit; }
+body #sidebar-preferences .language-toggle button[aria-pressed="true"] { background:#ffffff20; font-weight:700; }
+body[data-theme="plain"] #sidebar-preferences .language-toggle,
+body[data-theme="maple"] #sidebar-preferences .language-toggle { background:#00000008; }
+body[data-theme="plain"] #sidebar-preferences .language-toggle button[aria-pressed="true"],
+body[data-theme="maple"] #sidebar-preferences .language-toggle button[aria-pressed="true"] { background:#00000012; }
+body #sidebar-preferences .settings-fields .appearance-choices label { border:0; background:transparent; padding:6px 5px; }
+body #sidebar-preferences .settings-fields .appearance-choices label:has(input:checked) { background:var(--soft); border-radius:4px; }
+body .appearance-sections button { border:0; background:var(--soft); }
+body .appearance-sections button[aria-selected="true"] { background:var(--ink); }
