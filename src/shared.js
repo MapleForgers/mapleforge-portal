@@ -263,11 +263,6 @@ if (window.MF) {
       form
         .querySelectorAll("input,textarea,select,button")
         .forEach((x) => (x.disabled = true));
-      const link = document.createElement("a");
-      link.href = "/auth/discord";
-      link.className = "btn";
-      link.textContent = "Sign in with Discord to contribute";
-      form.append(link);
       return;
     }
     form.onsubmit = async (e) => {
@@ -665,8 +660,8 @@ if (window.MF) {
           )
         )
           el.textContent = t.includes("notification")
-            ? "Saved for the community. Follow-up dates do not send notifications yet."
-            : "Shared with the community. Sign in with Discord to contribute.";
+            ? "Follow-up dates do not send notifications yet."
+            : "";
         else if (t.includes("this offline demo does not send notifications"))
           el.textContent =
             "Following is saved to your account. Notifications are not enabled yet.";
@@ -695,18 +690,6 @@ if (window.MF) {
     });
     if ($("#activity-refresh"))
       $("#activity-refresh").onclick = () => refresh(true);
-    if ($("#app") && !$("#app").classList.contains("hidden")) {
-      let status = document.getElementById("shared-status");
-      if (!status) {
-        status = document.createElement("small");
-        status.id = "shared-status";
-        status.setAttribute("role", "status");
-        $(".member-account").append(status);
-      }
-      status.textContent = ready
-        ? "Shared content saved on the server"
-        : "Loading shared content…";
-    }
   };
   async function refresh(force = false) {
     if (refreshing) return;
@@ -734,10 +717,6 @@ if (window.MF) {
       }
     } catch (e) {
       if (force) toast(e.message);
-      const status = document.getElementById("shared-status");
-      if (status)
-        status.textContent =
-          "Connection interrupted. Retry before leaving unsaved work.";
     } finally {
       refreshing = false;
     }

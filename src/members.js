@@ -22,7 +22,7 @@ if (location.hostname === "maple-forge.ca") {
   function accountUI() {
     accountBox.innerHTML = account
       ? `<strong>${memberName(account.name)}</strong><small>@${esc(account.username)} · Discord</small><div><button class="btn secondary" id="member-profile">My profile</button><button class="btn secondary" id="member-logout">Sign out</button></div>`
-      : '<a class="btn" href="/auth/discord">Sign in with Discord</a><small>Sign in to post, comment and edit your profile.</small>';
+      : '<a class="btn" href="/auth/discord">Sign in with Discord</a>';
     if (account) {
       $("#member-profile").onclick = editProfile;
       $("#member-logout").onclick = async () => {
@@ -142,7 +142,7 @@ if (location.hostname === "maple-forge.ca") {
         "/api/comments?target=" + encodeURIComponent(target),
       );
       if (!host.isConnected) return;
-      host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment"><strong>${memberName(c.author)}</strong><small> · ${esc(new Date(c.created * 1000).toLocaleString())}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">Add a comment<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : '<a class="btn" href="/auth/discord">Sign in with Discord to comment</a>'}`;
+      host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment"><strong>${memberName(c.author)}</strong><small> · ${esc(new Date(c.created * 1000).toLocaleString())}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">Add a comment<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : ""}`;
       window.MF?.rulesReminder?.(host);
       let form = host.querySelector("form");
       if (form) {
