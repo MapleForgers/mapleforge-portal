@@ -113,7 +113,7 @@ function railMarkup() {
         : "Volunteer for a project",
     ],
   ];
-  return `<aside class="community-rail"><section class="panel"><span class="rail-label">r/oots & respect</span><h3 style="margin-top:12px">A tip of the toque to Reddit.</h3><p>We met in the comments. Now we’re giving those ideas somewhere to grow.</p><p>Same curiosity. A little more follow-through. Still allowed to lurk with a coffee.</p><div class="chatgpt-note"><strong>🤖 A note from ChatGPT</strong><p>“Let’s not let software slow us down.”</p><small>The ideas are yours. The buttons can catch up.</small></div><h3>Your view is yours.</h3><p>Old Reddit lists? A roomy feed? Cards? No need to win a layout debate. Choose what works for you.</p><p>Need another setting or a feature just for your workflow? Request it. We’ll explore it and improve this place together.</p></section><section class="panel"><span class="rail-label">WORKSHOP PERKS</span><h3 style="margin-top:12px">A little maple motivation.</h3>${perks.map(([e, n, d]) => `<div class="rail-perk"><span>${e}</span><div><strong>${n}</strong><small>${d}</small></div></div>`).join("")}<p style="font-size:10px;margin:10px 0 0">Playful local badges. No points, prizes or pecking order.</p></section><section class="panel"><h3>Notice something off?</h3><p>Feature idea? Tiny annoyance? Suspiciously un-Canadian button?</p><button class="btn secondary" data-rail-request>Request a feature →</button></section></aside>`;
+  return `<aside class="community-rail"><section class="panel"><span class="rail-label">r/oots & respect</span><h3 style="margin-top:12px">A tip of the toque to Reddit.</h3><p>We met in the comments. Now we’re giving those ideas somewhere to grow.</p><p>Same curiosity. A little more follow-through. Still allowed to lurk with a coffee.</p><div class="chatgpt-note"><strong>🤖 A note from ChatGPT</strong><p>“Let’s not let software slow us down.”</p><small>The ideas are yours. The buttons can catch up.</small></div><h3>Your view is yours.</h3><p>Old Reddit lists? A roomy feed? Cards? No need to win a layout debate. Choose what works for you.</p><p>Need another setting or a feature just for your workflow? Request it. We’ll explore it and improve this place together.</p></section><section class="panel"><span class="rail-label">WORKSHOP PERKS</span><h3 style="margin-top:12px">A little maple motivation.</h3>${perks.map(([e, n, d]) => `<div class="rail-perk"><span>${e}</span><div><strong>${n}</strong><small>${d}</small></div></div>`).join("")}<p style="font-size:16px;margin:10px 0 0">Playful local badges. No points, prizes or pecking order.</p></section><section class="panel"><h3>Notice something off?</h3><p>Feature idea? Tiny annoyance? Suspiciously un-Canadian button?</p><button class="btn secondary" data-rail-request>Request a feature →</button></section></aside>`;
 }
 function addPreferences() {
   document.body.dataset.density = state.preferences.density || "compact";
@@ -131,7 +131,7 @@ function addPreferences() {
   }
   const opened = settings.open;
   const appearanceSection = settings.dataset.section || 'menu';
-  document.body.style.setProperty('--menu-font-size', (state.preferences.menuFontSize || 15) + 'px');
+  document.body.style.setProperty('--menu-font-size', Math.max(16, state.preferences.menuFontSize || 16) + 'px');
   document.body.style.setProperty('--menu-font-weight', state.preferences.menuFontWeight || '600');
   document.body.dataset.menuSpacing = state.preferences.menuSpacing || "compact";
   document.body.dataset.menuStyle = state.preferences.menuStyle || "soft";
@@ -142,7 +142,7 @@ function addPreferences() {
     group("density", "Content spacing", [["compact","Tight"],["balanced","Balanced"],["roomy","Airy"]], "compact") +
     group("fontScale", "Text size", [[100,"100%"],[115,"115%"],[130,"130%"],[150,"150%"]], 100)
   }</section><section class="appearance-section" ${appearanceSection !== 'menu' ? 'hidden' : ''} data-appearance-pane="menu" aria-label="Left menu">${
-    group("menuFontSize", "Menu text size", [[14,"14 px"],[15,"15 px"],[17,"17 px"],[19,"19 px"]], 15) +
+    group("menuFontSize", "Menu text size", [[16,"16 px"],[18,"18 px"],[20,"20 px"],[22,"22 px"]], 16) +
     group("menuFontWeight", "Menu text weight", [["400","Regular"],["600","Semibold"],["700","Bold"]], "600") +
     group("menuSpacing", "Left menu spacing", [["compact","Compact"],["comfortable","Comfortable"],["spacious","Spacious"]], "compact") +
     group("menuStyle", "Left menu style", [["simple","Simple"],["soft","Soft blocks"],["outlined","Outlined"]], "soft")
@@ -251,7 +251,7 @@ function openRequestForm() {
   requestFormDialog.showModal();
 }
 function requestCard(r) {
-  return `<article class="request-item"><div class="request-meta"><span class="tag">${esc(r.kind)}</span><span>${esc(r.area)}</span><span class="request-status" data-status="${esc(r.status)}">${esc(r.status)}</span></div><h3><button class="title-btn" data-request-open="${esc(r.id)}">${esc(r.title)}</button></h3><p>${esc(r.body.slice(0, 230))}${r.body.length > 230 ? "…" : ""}</p><div class="request-meta"><strong>${memberName(r.author)}</strong><span>·</span><span>${(state.requestComments[r.id] || []).length} comments</span><span>·</span><span>${hasRequestVote(r.id) ? 1 : 0} supporters</span><button class="btn link" data-request-open="${esc(r.id)}" style="margin-left:auto;font-size:11px">Discuss →</button></div></article>`;
+  return `<article class="request-item"><div class="request-meta"><span class="tag">${esc(r.kind)}</span><span>${esc(r.area)}</span><span class="request-status" data-status="${esc(r.status)}">${esc(r.status)}</span></div><h3><button class="title-btn" data-request-open="${esc(r.id)}">${esc(r.title)}</button></h3><p>${esc(r.body.slice(0, 230))}${r.body.length > 230 ? "…" : ""}</p><div class="request-meta"><strong>${memberName(r.author)}</strong><span>·</span><span>${(state.requestComments[r.id] || []).length} comments</span><span>·</span><span>${hasRequestVote(r.id) ? 1 : 0} supporters</span><button class="btn link" data-request-open="${esc(r.id)}" style="margin-left:auto;font-size:16px">Discuss →</button></div></article>`;
 }
 function renderRequests() {
   $("#main").innerHTML =

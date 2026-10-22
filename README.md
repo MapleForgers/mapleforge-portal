@@ -96,7 +96,7 @@ Reverse proxy requirements:
 
 Create a Discord developer application and register the exact callback URL. The server requests only `identify` and `guilds.members.read`. A bot installation is not required for sign-in.
 
-Members first enter the private preview using the shared community word, then select **Sign in with Discord**. The server checks membership and rejects pending membership screening. Sessions expire after 24 hours, after which a new sign-in checks membership again. Discord access and refresh tokens are not stored. Portal display names can change without changing Discord identity or ownership.
+Members first enter the private preview using the shared community word, then select **Sign in with Discord**. The server checks membership, rejects pending membership screening, and rechecks membership after a five-minute cache. Sessions expire after at most 24 hours. Discord access tokens are held only in process memory for membership rechecks; refresh tokens are not retained. Portal display names can change without changing Discord identity or ownership.
 
 ## Before broader release
 
@@ -195,7 +195,7 @@ Section navigation writes `?section=<section-id>` into browser history and updat
 
 ### Saved collections
 
-Bookmarks is the first sidebar link and shows a private saved-item count. Members can save individual items, comments and activity entries. Sidebar destinations do not have whole-page Save controls. Green filled controls indicate saved items. Private bookmarks are returned only to their owner.
+Bookmarks is the first sidebar link and shows a private saved-item count. Members can save individual items, comments and activity entries. Sidebar destinations do not have whole-page Save controls. A filled orange bookmark indicates a saved item. Private bookmarks are returned only to their owner.
 
 ### Language and branding
 
@@ -252,3 +252,15 @@ commenting and bookmarking can target them. Do not replace the database or
 reset existing comments, votes, memberships, ownership or member edits. Existing
 record updates require field-level reconciliation with the current stored
 record. The harvest files and raw conversations stay outside this repository.
+
+## Latest interface updates
+
+- One reorderable sidebar list with visible drag grips and keyboard movement. There is no separate Favourites list or Option+F shortcut.
+- Anchored account footer, separate Appearance controls, and English/French language choices.
+- Interface font sizes start at 16px, with 18px board filters, category statistics and workspace tabs. Sidebar text choices are 16, 18, 20 and 22px.
+- Larger idea titles and colour-coded reply, age and estimated reading-time labels. Reply counts combine captured discussion and portal comments; reading time is an estimate at 220 words per minute, not a project effort estimate.
+- Original proposal and captured discussion appear together. Earlier discussion opens expanded by default.
+- Timestamps use the device time zone automatically. The Time control beside the language selector offers an IANA time-zone override, stored only in this browser. Named zones account for daylight saving rules. Stored timestamps and date-only task deadlines are not shifted.
+- Sign-in offers only the implemented Discord flow. Manual username/password accounts are not offered.
+
+Imported message text, member records and deployment configuration remain outside this repository. Reviewers can build the clean source without access to private community exports.
