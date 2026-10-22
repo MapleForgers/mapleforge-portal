@@ -39,6 +39,7 @@
     "Your view, your choice ↗": "Votre affichage, votre choix ↗",
     "My profile": "Mon profil",
     "Sign out": "Déconnexion",
+    "Prefer not to use Discord? Contact mandd to request a manually approved username and password account. Setup must be arranged first.": "Vous préférez ne pas utiliser Discord? Contactez mandd pour demander un compte avec nom d’utilisateur et mot de passe, approuvé manuellement. La configuration doit être organisée au préalable.",
     "Sign in with Discord": "Se connecter avec Discord",
     "Display name": "Nom affiché",
     Save: "Enregistrer",
