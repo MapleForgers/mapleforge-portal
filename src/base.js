@@ -151,6 +151,7 @@ function renderBoard() {
     b.setAttribute("aria-selected", b.dataset.tab === tab);
     b.onclick = () => {
       tab = b.dataset.tab;
+      if (tab === "all") { category = "All themes"; query = ""; }
       render();
     };
   });
