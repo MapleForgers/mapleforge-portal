@@ -1,4 +1,10 @@
 // Session navigation history for sections, details and editor tabs.
+// Retired proposal links return to the existing framework page.
+if (new URL(location.href).searchParams.get("section") === "debate") {
+  const route = new URL(location.href);
+  route.searchParams.set("section", "framework");
+  history.replaceState(null, "", route);
+}
 const requestedPortalSection = new URL(location.href).searchParams.get(
   "section",
 );

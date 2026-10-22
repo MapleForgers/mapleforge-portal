@@ -5,7 +5,7 @@
     ["bookmarks", "rules"],
     ["activity", "ideas", "tasks", "contributions"],
     ["people", "exchange", "resource"],
-    ["framework", "debate", "governance", "process", "requests"],
+    ["framework", "governance", "process", "requests"],
   ];
   groups.forEach((group, groupIndex) =>
     group.forEach((section, index) => {

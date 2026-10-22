@@ -203,6 +203,4 @@ The sidebar offers English and Canadian French next to Appearance. An explicit l
 
 The approved red-leaf wordmark is in `public/mapleforge-wordmark.png`. The Project Framework header is compact and has no whole-page bookmark control.
 
-## Project Debate
-
-`?section=debate` opens the proposed MyDebate discussion process directly beneath Project Framework. Two zoomable SVG diagrams preserve all decision branches; JPEG downloads live under `portal1/charts/` and share portal access controls. Editable Graphviz `.dot` sources accompany the graphics. This explanatory page does not enable AI moderation or change ballots, permissions, or project stages. Criteria, deadlines and unresolved-point rules remain proposals.
+Project Debate is currently withdrawn from the portal. Older `?section=debate` links return to Project Framework. The proposal can be recovered from Git history.
