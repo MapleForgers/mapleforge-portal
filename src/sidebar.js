@@ -39,7 +39,8 @@ document.querySelectorAll(".sidebar .brand").forEach((brand) => {
     const panel = current.querySelector('.settings-fields');
     const width = Math.min(360, window.innerWidth - 24);
     panel.style.width = width + 'px';
-    panel.style.left = Math.max(12, Math.min(box.left, window.innerWidth - width - 12)) + 'px';
+    const sidebarRight = document.querySelector('.sidebar').getBoundingClientRect().right;
+    panel.style.left = Math.max(12, Math.min(sidebarRight + 12, window.innerWidth - width - 12)) + 'px';
     panel.style.top = Math.max(12, Math.min(box.top - panel.getBoundingClientRect().height - 8, window.innerHeight - panel.getBoundingClientRect().height - 12)) + 'px';
   };
   document.addEventListener('toggle', event => {

@@ -3795,3 +3795,10 @@ body[data-density] #app #cards .save.bookmark-active { color:#cf651c !important;
 #app .bookmark-toggle > span { display:none; }
 body #app .bookmark-toggle svg, body #app #cards .save svg { width:23px; height:23px; }
 #app .bookmark-toggle:focus-visible, #app #cards .save:focus-visible { outline:2px solid #cf651c; outline-offset:2px; }
+.appearance-sections { display:flex; gap:6px; }
+.appearance-sections button { flex:1; padding:7px 10px; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:5px; font-weight:650; }
+.appearance-sections button[aria-selected="true"] { background:var(--ink); color:var(--paper,#fff); }
+.appearance-section { display:flex; flex-direction:column; gap:12px; }
+.appearance-section[hidden] { display:none !important; }
+body[data-menu-style] .sidebar .nav button { font-size:var(--menu-font-size,15px); font-weight:var(--menu-font-weight,600); }
+body[data-menu-style] .sidebar .nav .bookmarks-nav { font-weight:var(--menu-font-weight,600); }

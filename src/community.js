@@ -124,24 +124,36 @@ function addPreferences() {
     $(".sidebar-bottom").prepend(settings);
   }
   const opened = settings.open;
+  const appearanceSection = settings.dataset.section || 'menu';
+  document.body.style.setProperty('--menu-font-size', (state.preferences.menuFontSize || 15) + 'px');
+  document.body.style.setProperty('--menu-font-weight', state.preferences.menuFontWeight || '600');
   document.body.dataset.menuSpacing = state.preferences.menuSpacing || "compact";
   document.body.dataset.menuStyle = state.preferences.menuStyle || "soft";
   const group = (key, title, choices, fallback) => `<fieldset class="appearance-group"><legend>${title}</legend><div class="appearance-choices">${choices.map(([value,label]) => `<label><input type="radio" name="appearance-${key}" value="${value}" data-preference="${key}" ${String(state.preferences[key] ?? fallback) === String(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div></fieldset>`;
-  settings.innerHTML = `<summary>Appearance</summary><div class="settings-fields"><div class="appearance-panel-head"><strong>Appearance</strong><button type="button" class="appearance-done">Done</button></div><p class="appearance-help">Changes apply instantly. Only your view changes.</p>${
+  settings.innerHTML = `<summary>Appearance</summary><div class="settings-fields"><div class="appearance-panel-head"><strong>Appearance</strong><button type="button" class="appearance-done">Done</button></div><p class="appearance-help">Changes apply instantly. Only your view changes.</p><div class="appearance-sections" role="tablist" aria-label="Appearance sections"><button type="button" role="tab" data-appearance-section="content" aria-selected="${appearanceSection === 'content'}">Page content</button><button type="button" role="tab" data-appearance-section="menu" aria-selected="${appearanceSection === 'menu'}">Left menu</button></div><section class="appearance-section" ${appearanceSection !== 'content' ? 'hidden' : ''} data-appearance-pane="content" aria-label="Page content">${
     group("theme", "Colour theme", [["forest","Forest"],["maple","Cream"],["night","Night"],["plain","Plain"]], "forest") +
     group("layout", "Idea board layout", [["feed","Feed"],["cards","Cards"],["compact","List"],["lanes","Stages"]], "feed") +
     group("density", "Content spacing", [["compact","Tight"],["balanced","Balanced"],["roomy","Airy"]], "compact") +
-    group("fontScale", "Text size", [[100,"100%"],[115,"115%"],[130,"130%"],[150,"150%"]], 100) +
+    group("fontScale", "Text size", [[100,"100%"],[115,"115%"],[130,"130%"],[150,"150%"]], 100)
+  }</section><section class="appearance-section" ${appearanceSection !== 'menu' ? 'hidden' : ''} data-appearance-pane="menu" aria-label="Left menu">${
+    group("menuFontSize", "Menu text size", [[14,"14 px"],[15,"15 px"],[17,"17 px"],[19,"19 px"]], 15) +
+    group("menuFontWeight", "Menu text weight", [["400","Regular"],["600","Semibold"],["700","Bold"]], "600") +
     group("menuSpacing", "Left menu spacing", [["compact","Compact"],["comfortable","Comfortable"],["spacious","Spacious"]], "compact") +
     group("menuStyle", "Left menu style", [["simple","Simple"],["soft","Soft blocks"],["outlined","Outlined"]], "soft")
-  }</div>`;
+  }</section></div>`;
+  settings.querySelectorAll('[data-appearance-section]').forEach(button => button.onclick = () => {
+    settings.dataset.section = button.dataset.appearanceSection;
+    settings.querySelectorAll('[data-appearance-section]').forEach(b => b.setAttribute('aria-selected',String(b === button)));
+    settings.querySelectorAll('[data-appearance-pane]').forEach(pane => pane.hidden = pane.dataset.appearancePane !== settings.dataset.section);
+    window.positionAppearance?.();
+  });
   settings.open = opened;
   settings.querySelector('.appearance-done').onclick = () => { settings.open = false; settings.querySelector('summary').focus(); };
   settings.querySelectorAll('[data-preference]').forEach(input => {
     input.onchange = () => {
       const key = input.dataset.preference;
       const value = input.value;
-      state.preferences[key] = key === 'fontScale' ? Number(value) : value;
+      state.preferences[key] = ['fontScale','menuFontSize'].includes(key) ? Number(value) : value;
       persist();
       render();
       window.positionAppearance?.();

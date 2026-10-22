@@ -1,5 +1,6 @@
 {
   const french = {
+"Page content":"Contenu des pages", "Left menu":"Menu de gauche", "Appearance sections":"Sections d’apparence", "Menu text size":"Taille du texte du menu", "Menu text weight":"Épaisseur du texte du menu", "Regular":"Normal", "Semibold":"Demi-gras", "Bold":"Gras",
 "Colour theme":"Thème de couleurs", "Idea board layout":"Disposition du tableau d’idées", "Content spacing":"Espacement du contenu", "Left menu spacing":"Espacement du menu de gauche", "Left menu style":"Style du menu de gauche", "Compact":"Compact", "Comfortable":"Confortable", "Spacious":"Spacieux", "Simple":"Simple", "Soft blocks":"Blocs arrondis", "Outlined":"Contours", "Changes apply instantly. Only your view changes.":"Les changements sont immédiats et ne modifient que votre affichage.",
     Bookmarks: "Favoris",
     "Community Rules": "Règles de la communauté",
