@@ -229,4 +229,4 @@ Link validation tests: `node tests/test_links.cjs`.
 
 ### Personal navigation
 
-The default sidebar order stays unchanged. Drag any link, including Bookmarks or Community Rules, into Favourites or back into the main menu. Drop above or below another link to reorder. Keyboard users can focus a link and use Alt + Up/Down to reorder or Alt + F to move it into or out of Favourites. Preferences are stored in localStorage in the current browser, not synced between devices. Clearing browser storage restores the default arrangement.
+The default sidebar order stays unchanged. Use the small grip beside any link to drag it above or below another link. All links share one list, including Bookmarks and Community Rules. Keyboard users can focus a link and use Alt + Up/Down to reorder. Preferences are stored in localStorage in the current browser, not synced between devices. Clearing browser storage restores the default arrangement. Previously pinned favourites retain their displayed position at the top when migrated to the single list.
