@@ -3693,3 +3693,33 @@ body[data-density] #main .framework-header { margin-bottom:4px; }
   body[data-density] #main .hero-aside { border-left:0; padding:0; }
   body[data-density] #main .board-head { gap:8px; }
 }
+
+/* Saved items use a small corner control, never a separate action row. */
+body[data-density] #main .bookmark-result {
+  position:relative;
+  padding:12px 52px 12px 14px;
+}
+.bookmark-result .bookmark-actions {
+  position:absolute;
+  top:10px;
+  right:10px;
+  margin:0;
+}
+body[data-density] #main .bookmark-result .bookmark-toggle {
+  width:30px;
+  height:30px;
+  min-width:30px;
+  min-height:30px;
+  padding:6px;
+  margin:0;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:none;
+}
+.bookmark-result .bookmark-toggle > span { display:none; }
+.bookmark-result .bookmark-toggle svg { width:15px; height:15px; flex:none; }
+.bookmark-result h3 { margin:6px 0 4px; }
+.bookmark-result p { margin:5px 0; }
+.bookmark-results { gap:8px; }

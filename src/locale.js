@@ -76,8 +76,8 @@
     "Search ideas": "Rechercher des idées",
     "Filter by theme": "Filtrer par thème",
     "Sort ideas": "Trier les idées",
-    "Your private collection of saved items and boards. Only you can see it.":
-      "Votre collection privée d’éléments et de tableaux enregistrés. Vous seul pouvez la voir.",
+    "Your private collection of saved items. Only you can see it.":
+      "Votre collection privée d’éléments enregistrés. Vous seul pouvez la voir.",
     "Search your bookmarks…": "Rechercher dans vos favoris…",
     "Search bookmarks": "Rechercher dans les favoris",
     "Save something using its bookmark button, then find it here.":
