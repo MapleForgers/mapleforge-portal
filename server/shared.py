@@ -11,11 +11,22 @@ def init(c):
     CREATE TABLE IF NOT EXISTS relations(uid TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(uid,kind,target));
     CREATE TABLE IF NOT EXISTS activity(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,type TEXT NOT NULL,action TEXT NOT NULL,detail TEXT NOT NULL,created REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS member_locations(uid TEXT PRIMARY KEY,lat REAL NOT NULL,lng REAL NOT NULL,label TEXT NOT NULL,flags TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS pending_map_activity(uid TEXT PRIMARY KEY,action TEXT NOT NULL,due REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
 def now():return datetime.now(timezone.utc).isoformat()
 def event(c,uid,kind,target,type,action,detail=''):
     c.execute('INSERT INTO activity(uid,kind,target,type,action,detail,created) VALUES(?,?,?,?,?,?,?)',(uid,kind,target,type,action,detail[:4000],time.time()))
+def flush_map_activity(c):
+    for row in c.execute('SELECT * FROM pending_map_activity WHERE due<=?',(time.time(),)).fetchall():
+        c.execute('INSERT INTO activity(uid,kind,target,type,action,detail,created) VALUES(?,?,?,?,?,?,?)',(row['uid'],'Forgers’ Map',row['uid'],'Map',row['action'],'',row['due']))
+        c.execute('DELETE FROM pending_map_activity WHERE uid=?',(row['uid'],))
+def queue_map_activity(c,uid,action):
+    old=c.execute('SELECT action FROM pending_map_activity WHERE uid=?',(uid,)).fetchone()
+    if old and old['action']=='added their map pin' and action=='updated their map pin':action=old['action']
+    if old and old['action']=='added their map pin' and action=='removed their map pin':
+        c.execute('DELETE FROM pending_map_activity WHERE uid=?',(uid,));return
+    c.execute('INSERT INTO pending_map_activity VALUES(?,?,?) ON CONFLICT(uid) DO UPDATE SET action=excluded.action,due=excluded.due',(uid,action,time.time()+120))
 def record(c,kind,id):
     r=c.execute('SELECT * FROM records WHERE id=? AND kind=?',(id,kind)).fetchone()
     if r:return {**json.loads(r['payload']),'id':r['id'],'uid':r['uid'],'revision':r['revision'],'board':r['kind']}
@@ -36,6 +47,7 @@ def text(data,k,limit=4000,required=False):
     if not isinstance(v,str) or len(v.strip())>limit or (required and not v.strip()):raise Problem(400,'Please check '+k+'.')
     return v.strip()
 def snapshot(c,user,config):
+    flush_map_activity(c)
     uid=user['uid'] if user else '';names={r['id']:r['name'] for r in c.execute('SELECT id,name FROM users')}
     records=[]
     for row in c.execute('SELECT * FROM records'):
@@ -56,13 +68,20 @@ def snapshot(c,user,config):
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
     if op=='map_pin':
+        flush_map_activity(c)
+        previous=c.execute('SELECT * FROM member_locations WHERE uid=?',(uid,)).fetchone()
         if data.get('remove') is True:
-            c.execute('DELETE FROM member_locations WHERE uid=?',(uid,));return {}
+            c.execute('DELETE FROM member_locations WHERE uid=?',(uid,))
+            if previous:queue_map_activity(c,uid,'removed their map pin')
+            return {}
         if data.get('consent') is not True:raise Problem(400,'Please choose to share your pin with signed-in members.')
         lat=data.get('lat');lng=data.get('lng');label=text(data,'label',100,True);flags=data.get('flags',[])
         if type(lat) not in (int,float) or type(lng) not in (int,float) or not math.isfinite(lat) or not math.isfinite(lng) or not (-85<=lat<=85 and -180<=lng<=180):raise Problem(400,'Choose a valid map position.')
         province_flags={'CA-AB','CA-BC','CA-MB','CA-NB','CA-NL','CA-NS','CA-NT','CA-NU','CA-ON','CA-PE','CA-QC','CA-SK','CA-YT'}
         if not isinstance(flags,list) or len(flags)>3 or any(not isinstance(f,str) or not (f in province_flags or len(f)==2 and f.isascii() and f.isalpha() and f.isupper()) for f in flags):raise Problem(400,'Choose up to three flags.')
+        values=(round(lat,5),round(lng,5),label,json.dumps(list(dict.fromkeys(flags))))
+        if previous and tuple(previous[k] for k in ('lat','lng','label','flags'))==values:return {}
+        queue_map_activity(c,uid,'updated their map pin' if previous else 'added their map pin')
         c.execute('INSERT INTO member_locations VALUES(?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET lat=excluded.lat,lng=excluded.lng,label=excluded.label,flags=excluded.flags',(uid,round(lat,5),round(lng,5),label,json.dumps(list(dict.fromkeys(flags)))))
         return {}
     if op=='preferences':

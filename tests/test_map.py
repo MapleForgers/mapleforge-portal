@@ -17,3 +17,20 @@ class MapTests(unittest.TestCase):
  def test_rejects_invalid_or_unconsented_pins(self):
   for fields in [{'consent':False},{'lat':float('nan')},{'lng':181},{'lat':True},{'label':''},{'flags':['CA']*4},{'flags':['<script>']},{'flags':['CA-XX']}]:
    with self.subTest(fields=fields),self.assertRaises(shared.Problem):self.save(**fields)
+ def test_activity_waits_and_combines_saved_edits(self):
+  from unittest.mock import patch
+  with patch.object(shared.time,'time',return_value=1000):self.save()
+  with patch.object(shared.time,'time',return_value=1050):self.save(label='New label')
+  with patch.object(shared.time,'time',return_value=1169):shared.flush_map_activity(self.c)
+  self.assertEqual(self.c.execute('SELECT COUNT(*) FROM activity').fetchone()[0],0)
+  with patch.object(shared.time,'time',return_value=1170):shared.flush_map_activity(self.c)
+  row=self.c.execute('SELECT * FROM activity').fetchone()
+  self.assertEqual(row['action'],'added their map pin');self.assertEqual(row['detail'],'')
+  with patch.object(shared.time,'time',return_value=1200):self.save(label='New label')
+  self.assertEqual(self.c.execute('SELECT COUNT(*) FROM pending_map_activity').fetchone()[0],0)
+  with patch.object(shared.time,'time',return_value=1300):self.save(flags=['CA'])
+  with patch.object(shared.time,'time',return_value=1420):shared.flush_map_activity(self.c)
+  self.assertEqual(self.c.execute('SELECT action FROM activity ORDER BY id DESC').fetchone()[0],'updated their map pin')
+ def test_quick_add_remove_leaves_no_activity(self):
+  self.save();shared.mutate(self.c,self.user,{'op':'map_pin','remove':True},{})
+  self.assertEqual(self.c.execute('SELECT COUNT(*) FROM pending_map_activity').fetchone()[0],0)
