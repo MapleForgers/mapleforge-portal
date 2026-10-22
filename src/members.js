@@ -146,7 +146,7 @@ if (location.hostname === "maple-forge.ca") {
         "/api/comments?target=" + encodeURIComponent(target),
       );
       if (!host.isConnected) return;
-      host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment" data-comment-id="${esc(c.id)}"><strong>${memberName(c.author)}</strong><small> · ${esc(new Date(c.created * 1000).toLocaleString())}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">' + esc(commentLabel) + '<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : ""}`;
+      host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment" data-comment-id="${esc(c.id)}"><strong>${memberName(c.author)}</strong><small> · ${portalTimeHtml(c.created * 1000)}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">' + esc(commentLabel) + '<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : ""}`;
       window.MF?.rulesReminder?.(host);
       let form = host.querySelector("form");
       if (form) {
@@ -181,7 +181,7 @@ if (location.hostname === "maple-forge.ca") {
     let d =
       document.getElementById("shared-idea-" + id) ||
       createDialog("shared-idea-" + id, p.title);
-    d.innerHTML = `<div class="dialog-inner"><div class="dialog-top"><span class="tag">${esc(p.category)}</span><button class="close" aria-label="Close idea">×</button></div><h2>${esc(p.title)}</h2><p>${memberName(p.author)} · ${esc(new Date(p.created * 1000).toLocaleDateString())}</p><h3>The idea</h3><p class="shared-text">${esc(p.body)}</p>${proposalDetails(p.details || {})}${account?.id === p.uid ? '<button class="btn secondary" data-edit-shared>Edit my idea</button>' : ""}<section class="shared-thread"></section></div>`;
+    d.innerHTML = `<div class="dialog-inner"><div class="dialog-top"><span class="tag">${esc(p.category)}</span><button class="close" aria-label="Close idea">×</button></div><h2>${esc(p.title)}</h2><p>${memberName(p.author)} · ${portalTimeHtml(p.created * 1000)}</p><h3>The idea</h3><p class="shared-text">${esc(p.body)}</p>${proposalDetails(p.details || {})}${account?.id === p.uid ? '<button class="btn secondary" data-edit-shared>Edit my idea</button>' : ""}<section class="shared-thread"></section></div>`;
     d.querySelector(".close").onclick = () => d.close();
     if (d.querySelector("[data-edit-shared]"))
       d.querySelector("[data-edit-shared]").onclick = () => editPost(id);

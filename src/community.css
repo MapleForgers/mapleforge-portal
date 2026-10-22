@@ -3983,3 +3983,12 @@ body[data-theme="night"] #main .idea-quick-stats > span:nth-child(3) { color:#e0
 body .workspace-tab, body .workspace-tabs button { font-size:calc(15px * var(--text-scale,1)) !important; }
 
 body #main .stats-totals, body #main .stats-origin, body #main .board-stat-bar span, body #main .board-stat-bar strong, body #main .footer-note, body .section-tabs .section-tab button { font-size:calc(15px * var(--text-scale,1)) !important; }
+
+/* Small, independent time-zone preference beside the language choices. */
+#sidebar-preferences { position:relative; }
+.language-toggle #timezone-toggle { flex:0 0 auto; padding:6px 8px; }
+#timezone-panel { position:fixed; bottom:48px; left:100%; margin-left:8px; width:285px; padding:14px; background:var(--card,#fff); color:var(--text,#222); border:1px solid var(--line,#bbb); border-radius:8px; box-shadow:0 6px 24px #0003; z-index:1000; }
+#timezone-panel[hidden] { display:none; }
+#timezone-panel label,#timezone-panel small { display:block; margin:4px 0; }
+#timezone-panel select { width:100%; font-size:15px; padding:8px; }
+@media(max-width:600px){#timezone-panel {left:0; margin-left:0; max-width:calc(100vw - 32px);}}

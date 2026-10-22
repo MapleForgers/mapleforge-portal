@@ -4,11 +4,7 @@ function renderIdeaDiscussion(idea) {
   const messages = Array.isArray(idea?.discussion) ? idea.discussion : [];
   if (!messages.length) return '';
   const renderMessage = (message) => {
-    const date = new Date(message.time);
-    const when = Number.isNaN(date.getTime()) ? '' : date.toLocaleString('en-CA', {
-      timeZone: 'America/Toronto', dateStyle: 'medium', timeStyle: 'short',
-    });
-    return `<article class="harvest-message"><header><strong>${memberName(message.author)}</strong><time datetime="${esc(message.time)}">${esc(when)} ET</time></header><p class="shared-text harvest-quote">${esc(message.text)}</p>${message.attachments?.length ? `<p class="shared-text small">${message.attachments.map(esc).join(', ')}</p>` : ''}<small class="harvest-source">${esc(message.channel)} · ${esc(message.id)}</small></article>`;
+    return `<article class="harvest-message"><header><strong>${memberName(message.author)}</strong><time datetime="${esc(message.time)}">${portalTimeHtml(message.time)}</time></header><p class="shared-text harvest-quote">${esc(message.text)}</p>${message.attachments?.length ? `<p class="shared-text small">${message.attachments.map(esc).join(', ')}</p>` : ''}<small class="harvest-source">${esc(message.channel)} · ${esc(message.id)}</small></article>`;
   };
   const original = messages.filter(m => m.role === 'Original proposal');
   const replies = messages.filter(m => m.role !== 'Original proposal');

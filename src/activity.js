@@ -280,7 +280,7 @@ function renderActivityRows() {
     rows
       .map(
         (x) =>
-          `<article class="activity-row"><span class="avatar">${esc(initials(x.actor))}</span><div><p><strong>${memberName(x.actor)}</strong> ${esc(x.action)} <button class="btn link" data-activity-target="${esc(x.id)}">${esc(x.title)}</button></p>${x.detail ? `<p class="activity-excerpt">${esc(x.detail)}</p>` : ""}<div class="request-meta"><span>${esc(x.section === "Skills exchange" ? "Available skills" : x.section === "Resource sharing" ? "Available resources" : x.section)}</span><span>${esc(x.type)}</span><time datetime="${x.date}">${esc(new Date(x.date).toLocaleString())}</time></div></div></article>`,
+          `<article class="activity-row"><span class="avatar">${esc(initials(x.actor))}</span><div><p><strong>${memberName(x.actor)}</strong> ${esc(x.action)} <button class="btn link" data-activity-target="${esc(x.id)}">${esc(x.title)}</button></p>${x.detail ? `<p class="activity-excerpt">${esc(x.detail)}</p>` : ""}<div class="request-meta"><span>${esc(x.section === "Skills exchange" ? "Available skills" : x.section === "Resource sharing" ? "Available resources" : x.section)}</span><span>${esc(x.type)}</span><time datetime="${x.date}">${portalTimeHtml(x.date)}</time></div></div></article>`,
       )
       .join("") ||
     '<div class="empty">No activity matches yet. Join an idea, add a comment, or post a request to start the conversation.</div>';

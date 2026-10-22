@@ -146,7 +146,7 @@ renderRequestDetail = function () {
           `<p><button class="btn link" data-related-request="${esc(x.id)}">${esc(x.title)} · ${(state.requestComments[x.id] || []).length} comments</button></p>`,
       )
       .join("") || '<p class="small muted">No duplicates linked.</p>'
-  }<h3 style="margin-top:22px">Activity</h3>${r.history.map((h) => `<p class="small"><time>${esc(new Date(h.date).toLocaleString())}</time><br>${esc(h.text)}</p>`).join("") || '<p class="small muted">Updates will appear here.</p>'}<p class="source-note">Following adds this request to your Following filter. Updates are recorded here; this offline demo does not send notifications.</p><button class="btn secondary" id="publish-feature">Record an activated feature</button>`;
+  }<h3 style="margin-top:22px">Activity</h3>${r.history.map((h) => `<p class="small"><time>${portalTimeHtml(h.date)}</time><br>${esc(h.text)}</p>`).join("") || '<p class="small muted">Updates will appear here.</p>'}<p class="source-note">Following adds this request to your Following filter. Updates are recorded here; this offline demo does not send notifications.</p><button class="btn secondary" id="publish-feature">Record an activated feature</button>`;
   requestDialog.querySelector(".thread").before(box);
   $("#feature-organize").onsubmit = (e) => {
     e.preventDefault();
@@ -201,7 +201,7 @@ renderRequestDetail = function () {
 };
 const releaseDialog = createDialog("feature-releases", "Activated features");
 function showReleases() {
-  releaseDialog.innerHTML = `<div class="dialog-inner"><div class="dialog-top"><span class="eyebrow">WHAT’S NEW</span><button class="close" aria-label="Close activated features">×</button></div><h2>Fresh from the forge.</h2><p class="muted">Activated features and what changed, in newest-first order.</p><p class="source-note">Shared release notes. Recording a note does not deploy software.</p>${state.featureReleases.map((x) => `<article class="panel" style="margin-top:14px"><span class="tag">${esc(x.version || "Prototype update")}</span><h3>${esc(x.title)}</h3><p class="request-detail-text">${esc(x.notes)}</p><small>${esc(new Date(x.date).toLocaleString())} · ${memberName(x.author)}</small></article>`).join("") || '<div class="empty">No activations recorded yet. Completed requests can be recorded here when their feature is available.</div>'}</div>`;
+  releaseDialog.innerHTML = `<div class="dialog-inner"><div class="dialog-top"><span class="eyebrow">WHAT’S NEW</span><button class="close" aria-label="Close activated features">×</button></div><h2>Fresh from the forge.</h2><p class="muted">Activated features and what changed, in newest-first order.</p><p class="source-note">Shared release notes. Recording a note does not deploy software.</p>${state.featureReleases.map((x) => `<article class="panel" style="margin-top:14px"><span class="tag">${esc(x.version || "Prototype update")}</span><h3>${esc(x.title)}</h3><p class="request-detail-text">${esc(x.notes)}</p><small>${portalTimeHtml(x.date)} · ${memberName(x.author)}</small></article>`).join("") || '<div class="empty">No activations recorded yet. Completed requests can be recorded here when their feature is available.</div>'}</div>`;
   releaseDialog.querySelector(".close").onclick = () => releaseDialog.close();
   releaseDialog.showModal();
 }

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const context = {esc, memberName: esc};
+const context = {esc, memberName: esc, portalTimeHtml: esc};
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../src/idea-discussions.js'),'utf8'), context);
 assert.equal(context.renderIdeaDiscussion({}), '');
