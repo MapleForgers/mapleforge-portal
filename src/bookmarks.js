@@ -20,6 +20,8 @@ if (window.MF) {
     "Resource sharing": "Resources",
     People: "People",
     Comments: "Comments",
+    Boards: "Boards",
+    Activity: "Activity",
     Framework: "Framework",
   };
   let filter = "All",
@@ -27,20 +29,53 @@ if (window.MF) {
   sectionLabels.bookmarks = "Bookmarks";
   const nav = document.createElement("button");
   nav.dataset.view = "bookmarks";
-  nav.textContent = "Bookmarks";
+  nav.className = "bookmarks-nav";
+  nav.innerHTML =
+    icon("save") +
+    '<span>Bookmarks</span><span class="bookmark-count">0</span>';
   nav.onclick = () => switchSection("bookmarks");
-  document.querySelector('.nav [data-view="contributions"]').after(nav);
+  document.querySelector(".nav").prepend(nav);
+  sectionLabels.picks = "Community Picks";
+  const picksNav = document.createElement("button");
+  picksNav.dataset.view = "picks";
+  picksNav.textContent = "Community Picks";
+  picksNav.onclick = () => switchSection("picks");
+  document.querySelector('.nav [data-view="contributions"]').after(picksNav);
   const saved = () =>
     (M.bookmarkData?.relations || []).filter(
       (r) => r.kind === "saved" && r.uid === M.account?.id,
     );
-  const isSaved = (target) => saved().some((r) => r.target === target);
+  const picks = () =>
+    (M.bookmarkData?.relations || []).filter((r) => r.kind === "pick");
+  const isSaved = (target, shared = false) =>
+    (shared ? picks().filter((r) => r.uid === M.account?.id) : saved()).some(
+      (r) => r.target === target,
+    );
   function split(target) {
     const i = target.indexOf(":");
     return [target.slice(0, i), target.slice(i + 1)];
   }
   function item(target) {
     const [kind, id] = split(target);
+    if (kind === "Boards")
+      return sectionLabels[id]
+        ? { title: sectionLabels[id], body: "Open this board", author: "" }
+        : null;
+    if (kind === "Activity") {
+      const a = M.bookmarkData?.activity.find((a) => a.id === id);
+      return a
+        ? {
+            title: a.actor + " " + a.action,
+            body: a.detail,
+            author: a.actor,
+            parent:
+              (a.section === "People & skills" ? "People" : a.section) +
+              ":" +
+              a.target,
+          }
+        : (M.bookmarkData?.relations || []).find((r) => r.target === target)
+            ?.data.item || null;
+    }
     if (kind === "Comments") {
       const c = M.bookmarkData?.comments.find((c) => c.id === id);
       return c
@@ -71,47 +106,77 @@ if (window.MF) {
         }
       : null;
   }
-  async function toggle(target, title, button) {
-    if (!M.requireAccount()) return;
+  async function toggle(target, title, button, shared = false) {
+    if (!M.account) {
+      toast("Sign in with Discord using the sidebar to save items.");
+      return;
+    }
     button.disabled = true;
     try {
       const [kind, id] = split(target);
       await M.api("/api/shared", {
-        op: "bookmark",
+        op: shared ? "community_pick" : "bookmark",
         kind,
         id,
         title: title || "Member",
-        enabled: !isSaved(target),
+        enabled: !isSaved(target, shared),
       });
       await M.refresh();
-      if (view === "bookmarks") render();
+      if (["bookmarks", "picks"].includes(view)) render();
       else decorate();
+      toast(shared ? "Updated Community Picks" : "Updated your Bookmarks");
     } catch (e) {
       toast(e.message);
     } finally {
       if (button.isConnected) button.disabled = false;
     }
   }
-  function addButton(host, target, title) {
+  function addButton(host, target, title, shared = false) {
     let b = Array.from(host.children).find(
-      (e) => e.dataset?.bookmarkTarget === target,
+      (e) =>
+        e.dataset?.bookmarkTarget === target &&
+        (e.dataset.pick === "true") === shared,
     );
     if (!b) {
       b = document.createElement("button");
       b.type = "button";
       b.className = "btn secondary bookmark-toggle";
       b.dataset.bookmarkTarget = target;
-      b.onclick = () => toggle(target, title, b);
+      b.dataset.pick = String(shared);
+      b.onclick = () => toggle(target, title, b, shared);
       host.append(b);
     }
-    const active = isSaved(target),
-      label = (active ? "Remove bookmark: " : "Bookmark: ") + (title || "item");
+    const active = isSaved(target, shared),
+      label =
+        (shared
+          ? active
+            ? "Remove my community pick: "
+            : "Share in Community Picks: "
+          : active
+            ? "Remove bookmark: "
+            : "Bookmark: ") + (title || "item");
     if (b.getAttribute("aria-label") !== label) {
       b.innerHTML =
-        icon("save") + "<span>" + (active ? "Saved" : "Save") + "</span>";
+        icon("save") +
+        "<span>" +
+        (shared
+          ? active
+            ? "Picked ✓"
+            : "Community pick"
+          : active
+            ? "Saved ✓"
+            : "Save") +
+        "</span>";
       b.setAttribute("aria-label", label);
       b.setAttribute("aria-pressed", String(active));
+      b.title = shared
+        ? "Visible to the community"
+        : "Private, find it in Bookmarks";
     }
+  }
+  function addControls(host, target, title) {
+    addButton(host, target, title);
+    addButton(host, target, title, true);
   }
   function openTarget(target) {
     const [kind, id] = split(target),
@@ -120,7 +185,11 @@ if (window.MF) {
       toast("This item is no longer available. You can remove its bookmark.");
       return;
     }
-    if (kind === "Comments") {
+    if (kind === "Boards") {
+      switchSection(id);
+      return;
+    }
+    if (kind === "Comments" || kind === "Activity") {
       const d =
         document.getElementById("saved-comment-" + id) ||
         createDialog("saved-comment-" + id, "Saved comment");
@@ -142,7 +211,11 @@ if (window.MF) {
     if (kind === "Framework") window.openFrameworkDiscussion?.(id);
   }
   function renderBookmarks() {
-    const rows = saved().map((s) => ({
+    const shared = view === "picks";
+    const entries = shared
+      ? [...new Map(picks().map((r) => [r.target, r])).values()]
+      : saved();
+    const rows = entries.map((s) => ({
       ...s,
       kind: split(s.target)[0],
       item: item(s.target),
@@ -157,7 +230,26 @@ if (window.MF) {
       )
       .sort((a, b) => (b.data.savedAt || 0) - (a.data.savedAt || 0));
     $("#main").innerHTML =
-      `<div class="board-head"><div><h1>Bookmarks</h1><p>Your saved ideas, people, skills, resources, tasks and comments. Only you can see this collection.</p></div></div><div class="filter-chips">${["All", ...Object.keys(labels)].map((k) => `<button class="btn ${filter === k ? "" : "secondary"}" data-bookmark-filter="${esc(k)}" aria-pressed="${filter === k}">${esc(k === "All" ? "All" : labels[k])} · ${rows.filter((r) => k === "All" || r.kind === k).length}</button>`).join("")}</div><input type="search" id="bookmark-search" aria-label="Search bookmarks" placeholder="Search your bookmarks…" value="${esc(query)}"><div class="bookmark-results">${shown.map((r) => `<article class="panel bookmark-result" data-saved-item="${esc(r.target)}"><span class="tag">${esc(labels[r.kind] || r.kind)}</span><h3>${r.item ? `<button class="title-btn" data-bookmark-open="${esc(r.target)}">${esc(r.item.title)}</button>` : esc(r.data.title || "Item no longer available")}</h3>${r.item ? `<p class="shared-text">${esc(r.item.body.slice(0, 260))}${r.item.body.length > 260 ? "…" : ""}</p>${r.item.author ? `<p>${memberName(r.item.author)}</p>` : ""}` : "<p>You can remove this bookmark.</p>"}<div class="bookmark-actions"></div></article>`).join("") || '<p class="empty">' + (M.account ? "Save something using its bookmark button, then find it here." : "Sign in with Discord using the sidebar to save your own collection.") + "</p>"}</div>`;
+      `<div class="board-head"><div><h1>${shared ? "Community Picks" : "Bookmarks"}</h1><p>${shared ? "Useful finds shared by members. Add your picks for everyone to discover." : "Your private collection of saved items and boards. Only you can see it."}</p></div></div><div class="filter-chips">${["All", ...Object.keys(labels)].map((k) => `<button class="btn ${filter === k ? "" : "secondary"}" data-bookmark-filter="${esc(k)}" aria-pressed="${filter === k}">${esc(k === "All" ? "All" : labels[k])} · ${rows.filter((r) => k === "All" || r.kind === k).length}</button>`).join("")}</div><input type="search" id="bookmark-search" aria-label="${shared ? "Search Community Picks" : "Search bookmarks"}" placeholder="${shared ? "Search Community Picks…" : "Search your bookmarks…"}" value="${esc(query)}"><div class="bookmark-results">${
+        shown
+          .map(
+            (r) =>
+              `<article class="panel bookmark-result" data-saved-item="${esc(r.target)}"><span class="tag">${esc(labels[r.kind] || r.kind)}</span><h3>${r.item ? `<button class="title-btn" data-bookmark-open="${esc(r.target)}">${esc(r.item.title)}</button>` : esc(r.data.title || "Item no longer available")}</h3>${r.item ? `<p class="shared-text">${esc(r.item.body.slice(0, 260))}${r.item.body.length > 260 ? "…" : ""}</p>${r.item.author ? `<p>${memberName(r.item.author)}</p>` : ""}` : "<p>You can remove this bookmark.</p>"}${
+                shared
+                  ? `<p class="small">Picked by ${picks()
+                      .filter((p) => p.target === r.target)
+                      .map((p) => memberName(p.name))
+                      .join(", ")}</p>`
+                  : ""
+              }<div class="bookmark-actions"></div></article>`,
+          )
+          .join("") ||
+        '<p class="empty">' +
+          (M.account
+            ? "Save something using its bookmark button, then find it here."
+            : "Sign in with Discord using the sidebar to save your own collection.") +
+          "</p>"
+      }</div>`;
     $('[id="bookmark-search"]').oninput = (e) => {
       const pos = e.target.selectionStart;
       query = e.target.value;
@@ -177,7 +269,7 @@ if (window.MF) {
       (b) => (b.onclick = () => openTarget(b.dataset.bookmarkOpen)),
     );
     $$("[data-saved-item]").forEach((row) =>
-      addButton(
+      addControls(
         row.querySelector(".bookmark-actions"),
         row.dataset.savedItem,
         item(row.dataset.savedItem)?.title || "Unavailable item",
@@ -187,10 +279,39 @@ if (window.MF) {
   const previous = render;
   render = function () {
     previous();
-    if (view === "bookmarks") renderBookmarks();
+    if (["bookmarks", "picks"].includes(view)) renderBookmarks();
     decorate();
   };
   function decorate() {
+    const count = String(saved().length);
+    if (nav.querySelector(".bookmark-count").textContent !== count)
+      nav.querySelector(".bookmark-count").textContent = count;
+    const head = document.querySelector("#main h1");
+    if (
+      head &&
+      !["bookmarks", "picks", "contributions"].includes(view) &&
+      Object.values(sections)
+        .concat(["activity", "process", "rules"])
+        .includes(view)
+    ) {
+      let controls = head.parentElement.querySelector(
+        ".board-bookmark-controls",
+      );
+      if (!controls) {
+        controls = document.createElement("div");
+        controls.className = "board-bookmark-controls filter-chips";
+        head.after(controls);
+      }
+      addControls(controls, "Boards:" + view, sectionLabels[view]);
+    }
+    document.querySelectorAll("#cards [data-save]").forEach((b) => {
+      const active = state.saved.includes(b.dataset.save);
+      b.classList.toggle("bookmark-active", active);
+      b.setAttribute("aria-pressed", String(active));
+      const title = find(b.dataset.save)?.title || "Idea";
+      let host = b.closest(".card")?.querySelector(".card-footer");
+      if (host) addButton(host, "Ideas:" + b.dataset.save, title, true);
+    });
     const maps = [
       ["[data-exchange-open]", "Skills exchange"],
       ["[data-resource-open]", "Resource sharing"],
@@ -198,6 +319,7 @@ if (window.MF) {
       ["[data-person]", "People"],
       ["[data-request-open]", "Features"],
       ["[data-gov]", "Governance"],
+      ["[data-activity-target]", "Activity"],
     ];
     for (const [selector, kind] of maps)
       document.querySelectorAll(selector).forEach((link) => {
@@ -209,12 +331,12 @@ if (window.MF) {
           row.querySelector(".request-meta") ||
           row.querySelector("h3")?.parentElement ||
           row;
-        addButton(host, target, item(target)?.title || link.textContent);
+        addControls(host, target, item(target)?.title || link.textContent);
       });
     document.querySelectorAll("[data-comment-id]").forEach((row) => {
       const id = row.dataset.commentId;
       if (id)
-        addButton(
+        addControls(
           row,
           "Comments:" + id,
           item("Comments:" + id)?.title || "item",
@@ -222,7 +344,12 @@ if (window.MF) {
     });
     document.querySelectorAll(".bookmark-toggle").forEach((b) => {
       const title = item(b.dataset.bookmarkTarget)?.title || "item";
-      addButton(b.parentElement, b.dataset.bookmarkTarget, title);
+      addButton(
+        b.parentElement,
+        b.dataset.bookmarkTarget,
+        title,
+        b.dataset.pick === "true",
+      );
     });
   }
   // Board filters and asynchronous comment loads replace subtrees independently of render().

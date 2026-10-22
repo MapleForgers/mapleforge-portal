@@ -204,12 +204,24 @@ if (window.MF) {
       await M.refresh();
       render();
       if (after) after();
-      toast("Saved for everyone");
+      toast(
+        data.relation === "saved"
+          ? data.enabled
+            ? "Saved to your Bookmarks"
+            : "Removed from your Bookmarks"
+          : data.relation === "follow"
+            ? "Updated your follows"
+            : "Saved for the community",
+      );
     } catch (e) {
       toast(e.message);
     }
   }
   function relation(kind, id, type, enabled, extra = {}, after) {
+    if (type === "saved" && !M.account) {
+      toast("Sign in with Discord using the sidebar to save items.");
+      return;
+    }
     return change(
       { op: "relation", kind, id, relation: type, enabled, ...extra },
       after,
@@ -285,7 +297,15 @@ if (window.MF) {
         await M.refresh();
         render();
         after?.(result);
-        toast("Saved for everyone");
+        toast(
+          data.relation === "saved"
+            ? data.enabled
+              ? "Saved to your Bookmarks"
+              : "Removed from your Bookmarks"
+            : data.relation === "follow"
+              ? "Updated your follows"
+              : "Saved for the community",
+        );
       } catch (e) {
         error.textContent = e.message;
       } finally {

@@ -3519,3 +3519,40 @@ summary:focus-visible {
   padding: 10px;
   margin-top: 10px;
 }
+
+/* Saved means visibly saved, across every theme. */
+body .bookmark-toggle[aria-pressed="true"],
+body #cards .save.bookmark-active {
+  background: #145c45 !important;
+  color: #fff !important;
+  border: 2px solid #145c45 !important;
+}
+.bookmark-toggle[aria-pressed="true"] svg,
+#cards .save.bookmark-active svg {
+  fill: currentColor;
+}
+body .nav .bookmarks-nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #f5ce75;
+  color: #203429;
+  font-weight: 800;
+  border: 1px solid #ffd98e;
+  margin-bottom: 12px;
+}
+.nav .bookmarks-nav svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.bookmark-count {
+  margin-left: auto;
+  background: #203429;
+  color: white;
+  border-radius: 12px;
+  padding: 0 7px;
+}
+.board-bookmark-controls {
+  margin: 7px 0;
+}
