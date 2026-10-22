@@ -223,7 +223,7 @@ Run the isolated regression checks with `python3 -m unittest discover -s tests`.
 
 ### Running version
 
-The top-right version links to the exact source commit used by the build. Deploy `portal1/version.json` alongside the generated HTML. Open pages check that manifest on focus and every five minutes and offer a manual reload when a different commit is live. Build releases from a clean committed tree so the label matches GitHub.
+The top-right version displays the build revision as plain text, with the full commit in its tooltip. It does not link members to the private repository. Deploy `portal1/version.json` alongside the generated HTML. Open pages check that manifest on focus and every five minutes and offer a manual reload when a different commit is live. Build releases from a clean committed tree so the label matches GitHub.
 
 Link validation tests: `node tests/test_links.cjs`.
 

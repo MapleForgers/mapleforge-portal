@@ -3843,7 +3843,6 @@ body[data-theme] .framework-prompt {
 body[data-theme="night"] .nav button.active { border-left: 0; }
 body[data-theme="maple"] .tag { border-bottom: 0; }
 
-.member-account .manual-access-note {font-size:12px;line-height:1.45;margin:8px 0 0;color:inherit;opacity:.9;}
 
 /* Personal navigation and a compact version label beside workspace tabs. */
 body .sidebar { padding-top:8px; }

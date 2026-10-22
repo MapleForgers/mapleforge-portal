@@ -22,7 +22,7 @@ if (location.hostname === "maple-forge.ca") {
   function accountUI() {
     accountBox.innerHTML = account
       ? `<strong>${memberName(account.name)}</strong><small>@${esc(account.username)} · Discord</small><div><button class="btn secondary" id="member-profile">My profile</button><button class="btn secondary" id="member-logout">Sign out</button></div>`
-      : '<a class="btn" href="/auth/discord">Sign in with Discord</a><p class="manual-access-note">Prefer not to use Discord? Contact mandd to request a manually approved username and password account. Setup must be arranged first.</p>';
+      : '<a class="btn" href="/auth/discord">Sign in with Discord</a>';
     if (account) {
       $("#member-profile").onclick = editProfile;
       $("#member-logout").onclick = async () => {
