@@ -223,6 +223,10 @@ Run the isolated regression checks with `python3 -m unittest discover -s tests`.
 
 ### Running version
 
-The bottom-left version links to the exact source commit used by the build. Deploy `portal1/version.json` alongside the generated HTML. Open pages check that manifest on focus and every five minutes and offer a manual reload when a different commit is live. Build releases from a clean committed tree so the label matches GitHub.
+The top-right version links to the exact source commit used by the build. Deploy `portal1/version.json` alongside the generated HTML. Open pages check that manifest on focus and every five minutes and offer a manual reload when a different commit is live. Build releases from a clean committed tree so the label matches GitHub.
 
 Link validation tests: `node tests/test_links.cjs`.
+
+### Personal navigation
+
+The default sidebar order stays unchanged. Drag any link, including Bookmarks or Community Rules, into Favourites or back into the main menu. Drop above or below another link to reorder. Keyboard users can focus a link and use Alt + Up/Down to reorder or Alt + F to move it into or out of Favourites. Preferences are stored in localStorage in the current browser, not synced between devices. Clearing browser storage restores the default arrangement.

@@ -102,7 +102,9 @@ function closeWorkspaceTab(id) {
   else drawSectionTabs();
 }
 function drawSectionTabs() {
+  const versionLabel = sectionStrip.querySelector(".portal-version");
   sectionStrip.innerHTML = `<div role="tablist" aria-label="Workspace tabs">${openSections.map((id) => `<div class="section-tab ${activeSection === id ? "selected" : ""}"><button role="tab" aria-selected="${activeSection === id}" aria-controls="${paneTabs[id] ? paneTabs[id].id : "main"}" data-section-tab="${id}" title="${esc(tabLabel(id))}">${esc(tabLabel(id))}</button>${openSections.length > 1 ? `<button class="tab-close" aria-label="Close ${esc(tabLabel(id))} tab" data-close-section="${id}">×</button>` : ""}</div>`).join("")}</div>`;
+  if (versionLabel) sectionStrip.append(versionLabel);
   sectionStrip.querySelectorAll("[data-section-tab]").forEach((b) => {
     b.onclick = () => switchSection(b.dataset.sectionTab);
     b.onkeydown = (e) => {

@@ -3844,3 +3844,17 @@ body[data-theme="night"] .nav button.active { border-left: 0; }
 body[data-theme="maple"] .tag { border-bottom: 0; }
 
 .member-account .manual-access-note {font-size:12px;line-height:1.45;margin:8px 0 0;color:inherit;opacity:.9;}
+
+/* Personal navigation and a compact version label beside workspace tabs. */
+body .sidebar { padding-top:8px; }
+body .sidebar .brand { margin-top:0; margin-bottom:10px; }
+body .section-tabs .portal-version { margin:0 0 0 auto; padding:5px 8px; color:var(--muted); flex:0 0 auto; align-self:center; justify-content:flex-end; max-width:190px; }
+body .sidebar .nav .personal-nav-row > [data-view] { width:100%; }
+.nav-favourites, .nav-regular { display:flex; flex-direction:column; gap:2px; min-height:24px; }
+.nav-favourites { padding-bottom:6px; margin-bottom:4px; }
+.nav-favourites-heading { font-size:11px; font-weight:700; padding:2px 9px; opacity:.8; }
+.nav-drop-hint { font-size:11px; padding:3px 9px; opacity:.65; }
+.nav-drop-hint[hidden] { display:none; }
+.nav-drop-active { outline:2px dashed currentColor; outline-offset:2px; border-radius:5px; }
+.nav-dragging { opacity:.45; }
+@media(max-width:600px) { body .section-tabs .portal-version { max-width:100px; font-size:10px; padding:3px; } }

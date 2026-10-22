@@ -3,7 +3,7 @@
   const release = document.createElement('div');
   release.className = 'portal-version';
   release.innerHTML = `<a href="https://github.com/GnMohareb/MapleForge/tree/${PORTAL_BUILD.commit}" target="_blank" rel="noopener noreferrer" title="View this version on GitHub">Version ${PORTAL_BUILD.short}</a><button type="button" hidden>Update available · Reload</button>`;
-  document.querySelector('.sidebar-bottom').append(release);
+  document.querySelector('.section-tabs').append(release);
   release.querySelector('button').onclick = () => location.reload();
   async function checkVersion() {
     if (document.hidden) return;
