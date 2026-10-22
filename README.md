@@ -16,7 +16,7 @@ Working shared features:
 - A skill category index with counts, grouped listings and filtering.
 - A separate Project Framework discussion draft with seven selectable phases, point-specific feedback prompts and saved phase conversations.
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
-- Browser Back/Forward navigation synchronized with portal navigation controls.
+- Section URLs and page titles that follow navigation, with reload and browser Back/Forward support.
 
 Ideas, comments, profiles, votes, idea memberships and contributions, feature requests, task records, governance proposals, and activity now use shared SQLite storage. Bookmarks, follows, and appearance preferences belong to the signed-in account. Shared views refresh every 15 seconds while visible. Unsent form drafts stay in session storage until submitted; earlier browser-only drafts can be reviewed and published explicitly.
 
@@ -114,10 +114,10 @@ This directory is the canonical source repository. Edit files in `src/`,
 The first local source snapshot is tagged `baseline-2026-10-21`. Earlier work
 was not recorded as individual local commits. The baseline is a sanitized
 source snapshot, not a byte-for-byte backup of the live site, which also uses
-separately managed community content. This local history has no configured
-remote and has not been pushed. An existing GitHub repository has its own
-history; reconcile that history before connecting or publishing this one.
-Do not force-push this independent baseline over it.
+separately managed community content. The GitHub repository is
+`GnMohareb/MapleForge`. Preserve both its original upload history and this local
+commit history when synchronizing. Fetch before publishing and reconcile any
+divergence without force-pushing over other contributors’ work.
 
 ### Make a change
 
@@ -183,6 +183,10 @@ No publishing or deployment is automatic. Pushing to GitHub is a separate step.
 Before doing so, verify the target repository, its visibility, its existing history
 and the exact changes being sent.
 
+## Project Framework discussions
+
 The Project Framework page is a standalone discussion preview. It does not enable ranked ballots or alter existing idea stages. Hosted feedback targets the separately provisioned `Framework` record `project-framework-v01`; its source link is stored with that private runtime record. Phase conversations use `project-framework-v01-phase-1` through `project-framework-v01-phase-7`, also provisioned as `Framework` records. General feedback remains on the original record. Point feedback includes the selected rule in the comment. A clean static build shows the framework without private discussion content.
+
+## Section navigation
 
 Section navigation writes `?section=<section-id>` into browser history and updates the page title. Loading that address restores the section after its renderer is registered. Detail and editor tabs keep their existing in-session history; their URLs identify the parent section, not unsaved editor contents.
