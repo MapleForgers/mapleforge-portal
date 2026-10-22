@@ -1,5 +1,6 @@
 {
   const french = {
+"Original proposal":"Proposition originale", "Earlier discussion":"Discussion antérieure", "Selected messages from the original conversation. These are not new portal comments or recorded votes.":"Messages sélectionnés dans la conversation originale. Il ne s’agit pas de nouveaux commentaires du portail ni de votes enregistrés.", "No relevant follow-up messages were captured in this review.":"Aucun message de suivi pertinent n’a été recueilli lors de cette révision.",
 "Update available · Reload":"Mise à jour disponible · Recharger", "View this version on GitHub":"Voir cette version sur GitHub",
 "Project Debate":"Débat de projet", "Proposal for discussion":"Proposition à discuter", "Inside MyDebate":"Le protocole MyDebate", "Framework + MyDebate":"Cadre + MyDebate", "Download JPEG":"Télécharger le JPEG", "Fit":"Ajuster", "Read the process in text":"Lire le processus en texte",
 "People debate. People decide. AI moderates.":"Les membres débattent et décident. L’IA modère.",

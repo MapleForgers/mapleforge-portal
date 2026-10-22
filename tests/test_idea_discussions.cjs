@@ -1,0 +1,18 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const context = {esc, memberName: esc};
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../src/idea-discussions.js'),'utf8'), context);
+assert.equal(context.renderIdeaDiscussion({}), '');
+const message = {id:'123', author:'<img onerror=alert(1)>', text:'<script>alert(1)</script>\nSecond line', time:'2026-10-22T15:00:00Z', channel:'discussion', role:'Original proposal', attachments:['<unsafe>.pptx']};
+const output = context.renderIdeaDiscussion({discussion:[message,{...message,id:'124',role:'Follow-up discussion'}]});
+assert.match(output,/Original proposal/);
+assert.match(output,/Earlier discussion/);
+assert.match(output,/&lt;script&gt;/);
+assert.match(output,/&lt;unsafe&gt;/);
+assert.doesNotMatch(output,/<script>|<img|href=|Post comment/);
+assert.match(output,/These are not new portal comments or recorded votes/);
+assert.equal((output.match(/class="harvest-message"/g)||[]).length,2);
+console.log('Imported correspondence escaping and separation checks passed');

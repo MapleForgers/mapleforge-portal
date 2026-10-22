@@ -230,3 +230,25 @@ Link validation tests: `node tests/test_links.cjs`.
 ### Personal navigation
 
 The default sidebar order stays unchanged. Use the small grip beside any link to drag it above or below another link. All links share one list, including Bookmarks and Community Rules. Keyboard users can focus a link and use Alt + Up/Down to reorder. Preferences are stored in localStorage in the current browser, not synced between devices. Clearing browser storage restores the default arrangement. Previously pinned favourites retain their displayed position at the top when migrated to the single list.
+
+### Imported idea discussions
+
+Private `ideas.json` records can include a `category`, `discussionNote`, and a
+`discussion` array. Each message contains `id` (original message ID), `author`,
+`time` (ISO timestamp), `text`, `channel`, `role` (`Original proposal` or
+`Follow-up discussion`), and optional `attachments` (filenames). These messages
+are escaped, read-only excerpts shown within the idea detail. Member-written
+quotes stay in their original language. Interface labels support English and
+French. Source message metadata is displayed without external navigation.
+
+Imported correspondence does not create portal comments, votes, memberships or
+activity entries. Preserve message IDs and existing idea IDs when refreshing
+content, and deduplicate by source message ID within each idea. Keep summaries
+separate from original wording and distinguish the credited proposer from the
+person who posted an attachment on their behalf.
+
+When releasing a private harvest, provision new idea records separately so
+commenting and bookmarking can target them. Do not replace the database or
+reset existing comments, votes, memberships, ownership or member edits. Existing
+record updates require field-level reconciliation with the current stored
+record. The harvest files and raw conversations stay outside this repository.

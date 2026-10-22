@@ -3914,3 +3914,14 @@ body #sidebar-preferences .settings-fields .appearance-choices label { border:0;
 body #sidebar-preferences .settings-fields .appearance-choices label:has(input:checked) { background:var(--soft); border-radius:4px; }
 body .appearance-sections button { border:0; background:var(--soft); }
 body .appearance-sections button[aria-selected="true"] { background:var(--ink); }
+
+/* Original proposal and selected correspondence stay readable in every layout. */
+.idea-discussion-archive { margin: 18px 0; }
+.harvest-message { padding: 12px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.harvest-message header { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.harvest-message time, .harvest-source { font-size: .8rem; color: var(--muted); }
+#detail-content .harvest-quote { font-size: calc(16px * var(--text-scale, 1)) !important; color: var(--ink) !important; white-space: pre-wrap; overflow-wrap: anywhere; margin: 7px 0; color: var(--ink); }
+.harvest-note { font-size: .9rem; }
+.harvest-replies { margin-top: 14px; }
+.harvest-replies summary { cursor: pointer; font-weight: 650; padding: 8px 0; }
+.harvest-replies[open] > .small { margin: 5px 0; }
