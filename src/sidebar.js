@@ -25,5 +25,5 @@
 
 document.querySelectorAll(".sidebar .brand").forEach((brand) => {
   brand.innerHTML =
-    '<img class="brand-wordmark" src="/mapleforge-wordmark.png" alt="MapleForge" width="937" height="301">';
+    '<img class="brand-wordmark" src="/mapleforge-wordmark-transparent.png" alt="MapleForge" width="2170" height="725">';
 });

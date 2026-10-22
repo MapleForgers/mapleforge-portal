@@ -3637,3 +3637,15 @@ body .nav .bookmarks-nav {
   padding: 7px 10px;
   min-height: 34px;
 }
+
+/* Transparent identity with light lettering on dark sidebar themes. */
+.sidebar .brand { position:relative; background:none; }
+body[data-theme="forest"] .sidebar .brand-wordmark,
+body[data-theme="night"] .sidebar .brand-wordmark { opacity:0; }
+body[data-theme="forest"] .sidebar .brand::after,
+body[data-theme="night"] .sidebar .brand::after {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(to right,#e21b23 26%,#f7f7f2 26%);
+  mask:url('/mapleforge-wordmark-transparent.png') center / 100% 100% no-repeat;
+  -webkit-mask:url('/mapleforge-wordmark-transparent.png') center / 100% 100% no-repeat;
+}
