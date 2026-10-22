@@ -6,6 +6,7 @@
     ["activity", "ideas", "tasks", "contributions"],
     ["people", "exchange", "resource"],
     ["framework", "governance", "process", "requests"],
+    ["map"],
   ];
   groups.forEach((group, groupIndex) =>
     group.forEach((section, index) => {

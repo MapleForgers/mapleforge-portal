@@ -1,5 +1,5 @@
 """Transactional shared boards. Identity always comes from the authenticated session."""
-import json, time, secrets
+import json, time, secrets, math
 from datetime import datetime, timezone
 KINDS={'Ideas','Features','Tasks','Governance','Skills exchange','Resource sharing','Framework'}
 class Problem(Exception):
@@ -10,6 +10,7 @@ def init(c):
     CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY,kind TEXT NOT NULL,uid TEXT NOT NULL,payload TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1);
     CREATE TABLE IF NOT EXISTS relations(uid TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(uid,kind,target));
     CREATE TABLE IF NOT EXISTS activity(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,type TEXT NOT NULL,action TEXT NOT NULL,detail TEXT NOT NULL,created REAL NOT NULL);
+    CREATE TABLE IF NOT EXISTS member_locations(uid TEXT PRIMARY KEY,lat REAL NOT NULL,lng REAL NOT NULL,label TEXT NOT NULL,flags TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
 def now():return datetime.now(timezone.utc).isoformat()
@@ -51,9 +52,19 @@ def snapshot(c,user,config):
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
         activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
-    return {'records':records,'relations':relations,'comments':comments,'activity':activity,'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
+    return {'records':records,'relations':relations,'comments':comments,'activity':activity,'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
+    if op=='map_pin':
+        if data.get('remove') is True:
+            c.execute('DELETE FROM member_locations WHERE uid=?',(uid,));return {}
+        if data.get('consent') is not True:raise Problem(400,'Please choose to share your pin with signed-in members.')
+        lat=data.get('lat');lng=data.get('lng');label=text(data,'label',100,True);flags=data.get('flags',[])
+        if type(lat) not in (int,float) or type(lng) not in (int,float) or not math.isfinite(lat) or not math.isfinite(lng) or not (-85<=lat<=85 and -180<=lng<=180):raise Problem(400,'Choose a valid map position.')
+        province_flags={'CA-AB','CA-BC','CA-MB','CA-NB','CA-NL','CA-NS','CA-NT','CA-NU','CA-ON','CA-PE','CA-QC','CA-SK','CA-YT'}
+        if not isinstance(flags,list) or len(flags)>3 or any(not isinstance(f,str) or not (f in province_flags or len(f)==2 and f.isascii() and f.isalpha() and f.isupper()) for f in flags):raise Problem(400,'Choose up to three flags.')
+        c.execute('INSERT INTO member_locations VALUES(?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET lat=excluded.lat,lng=excluded.lng,label=excluded.label,flags=excluded.flags',(uid,round(lat,5),round(lng,5),label,json.dumps(list(dict.fromkeys(flags)))))
+        return {}
     if op=='preferences':
         p=data.get('preferences');valid={}
         if not isinstance(p,dict):raise Problem(400,'Invalid preferences.')

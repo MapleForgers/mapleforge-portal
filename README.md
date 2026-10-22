@@ -264,3 +264,9 @@ record. The harvest files and raw conversations stay outside this repository.
 - Sign-in offers only the implemented Discord flow. Manual username/password accounts are not offered.
 
 Imported message text, member records and deployment configuration remain outside this repository. Reviewers can build the clean source without access to private community exports.
+
+## Forgers’ Map
+
+Signed-in members can opt in to one shared map pin, choose an approximate position and location label, and edit or remove it. No GPS permission or automatic location lookup is used. Up to three optional country or Canadian provincial flags form one badge. Pins are only returned to signed-in members, and the server only allows members to change their own pin.
+
+Deploy `server/shared.py` alongside the built portal and `public/flags` and `public/vendor/leaflet` assets. Startup creates the `member_locations` table automatically. Back up the member database before deployment. Leaflet 1.9.4 and flag-icons 7.6.0 are vendored with license files. OpenStreetMap supplies map tiles directly to browsers; member pins are supplied by the portal.
