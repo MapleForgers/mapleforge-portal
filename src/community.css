@@ -3649,3 +3649,47 @@ body[data-theme="night"] .sidebar .brand::after {
   mask:url('/mapleforge-wordmark-transparent.png') center / 100% 100% no-repeat;
   -webkit-mask:url('/mapleforge-wordmark-transparent.png') center / 100% 100% no-repeat;
 }
+
+/* Page introductions stay compact so boards and discussions lead the page. */
+body[data-density] .content { padding-top:12px; }
+body[data-density] #main .board-head,
+body[data-density] #main .hero {
+  margin:0 0 10px;
+  padding:0;
+  gap:10px 16px;
+  align-items:start;
+  min-height:0;
+}
+body[data-density] #main .board-head h1,
+body[data-density] #main .hero h1,
+body[data-density] #main .framework-header h1 {
+  font-size:calc(24px * var(--text-scale));
+  line-height:1.2;
+  margin:0 0 4px;
+}
+body[data-density] #main .board-head p,
+body[data-density] #main .hero p {
+  margin:4px 0 0;
+  line-height:1.4;
+  max-width:90ch;
+}
+#main .board-head .eyebrow,
+#main .hero .eyebrow { display:none; }
+body[data-density] #main .hero { grid-template-columns:minmax(0,1fr) auto; }
+body[data-density] #main .hero-aside { padding:0 0 0 14px; }
+body[data-density] #main .hero-aside .number { font-size:24px; }
+body[data-density] #main .board-head .btn { margin-top:0; }
+body[data-density] #main .people-overview,
+body[data-density] #main .people-stats,
+body[data-density] #main .activity-stats { margin-top:8px; margin-bottom:10px; }
+body[data-density] #main > .source-note,
+body[data-density] #main > .governance-note,
+body[data-density] #main > .small,
+body[data-density] #main > .notice { margin-top:6px; margin-bottom:10px; }
+body[data-density] #main .request-tools { margin-top:8px; margin-bottom:10px; }
+body[data-density] #main .framework-header { margin-bottom:4px; }
+@media (max-width:760px) {
+  body[data-density] #main .hero { grid-template-columns:1fr; }
+  body[data-density] #main .hero-aside { border-left:0; padding:0; }
+  body[data-density] #main .board-head { gap:8px; }
+}
