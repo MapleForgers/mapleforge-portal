@@ -3723,3 +3723,21 @@ body[data-density] #main .bookmark-result .bookmark-toggle {
 .bookmark-result h3 { margin:6px 0 4px; }
 .bookmark-result p { margin:5px 0; }
 .bookmark-results { gap:8px; }
+
+/* Separate language row and floating Appearance chooser. */
+#sidebar-preferences { display:flex; flex-direction:column; align-items:stretch; gap:6px; }
+#sidebar-preferences #sidebar-settings { display:block; padding:0 !important; margin:0; border:0; background:none; }
+#sidebar-preferences #sidebar-settings summary { display:list-item; padding:7px 0; cursor:pointer; }
+#sidebar-preferences .language-toggle { display:flex; align-items:center; gap:4px; padding:6px 0; border-top:1px solid rgba(128,128,128,.25); }
+.language-label { flex:1; font-size:11px; opacity:.85; }
+#sidebar-preferences #sidebar-settings[open] > .settings-fields {
+  display:grid; position:fixed; z-index:1000;
+  box-sizing:border-box; margin:0; padding:14px;
+  color:var(--ink); background:var(--paper, #fffef8);
+  border:1px solid var(--line); border-radius:10px;
+  box-shadow:0 6px 24px rgba(0,0,0,.25);
+  max-height:none; overflow:visible;
+}
+#sidebar-preferences .settings-fields label { color:var(--ink); font-size:12px !important; }
+#sidebar-preferences .settings-fields select { width:100%; min-height:36px !important; }
+#sidebar-preferences .settings-fields .pref-hint { display:none; }
