@@ -1,6 +1,9 @@
 """Transactional shared boards. Identity always comes from the authenticated session."""
-import json, time, secrets, math
+import json, time, secrets, math, os
+from pathlib import Path
 from datetime import datetime, timezone
+IDEA_CATEGORIES={'Community & care','Work & careers','Climate & resources','Business & technology'}
+GOVERNANCE_CATEGORIES={'Decision-making','Roles & teams','Project process','Ownership & credit','Offers to help'}
 KINDS={'Ideas','Features','Tasks','Governance','Skills exchange','Resource sharing','Framework'}
 class Problem(Exception):
     def __init__(self,status,message):self.status=status;self.message=message
@@ -15,6 +18,8 @@ def init(c):
     CREATE TABLE IF NOT EXISTS member_details(uid TEXT PRIMARY KEY,payload TEXT NOT NULL,updated REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
+def revision(c):
+    return c.execute('SELECT value FROM content_version WHERE id=1').fetchone()[0]
 def now():return datetime.now(timezone.utc).isoformat()
 def event(c,uid,kind,target,type,action,detail=''):
     c.execute('INSERT INTO activity(uid,kind,target,type,action,detail,created) VALUES(?,?,?,?,?,?,?)',(uid,kind,target,type,action,detail[:4000],time.time()))
@@ -47,12 +52,22 @@ def text(data,k,limit=4000,required=False):
     v=data.get(k,'')
     if not isinstance(v,str) or len(v.strip())>limit or (required and not v.strip()):raise Problem(400,'Please check '+k+'.')
     return v.strip()
+def imported_people():
+    path=Path(os.environ.get('IMPORTED_PEOPLE','/var/lib/mapleforge/imported-people.json'))
+    if not path.exists():return []
+    return [{k:v for k,v in p.items() if k not in ('sources','channel','messageId')} | {'sources':[]} for p in json.loads(path.read_text())]
+def clean_record(r):
+    if 'discussion' in r:r['discussion']=[{k:v for k,v in m.items() if k in ('author','text','time','role')} for m in r['discussion']]
+    for key in ('source','channel','messageId','attachments'):r.pop(key,None)
+    return r
 def snapshot(c,user,config):
     flush_map_activity(c)
+    version=revision(c)
     uid=user['uid'] if user else '';names={r['id']:r['name'] for r in c.execute('SELECT id,name FROM users')}
     records=[]
     for row in c.execute('SELECT * FROM records'):
         r={**json.loads(row['payload']),'id':row['id'],'uid':row['uid'],'revision':row['revision'],'board':row['kind']}
+        r=clean_record(r)
         r['author']=names.get(row['uid'],r.get('author','Community'))
         r['canEdit']=bool(user and allowed(r,user,config));records.append(r)
     relations=[dict(r) for r in c.execute('SELECT * FROM relations') if r['kind'] not in ('saved','follow') or r['uid']==uid]
@@ -65,7 +80,7 @@ def snapshot(c,user,config):
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
         activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
-    return {'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':[dict(json.loads(r['payload']),uid=r['uid'],discordName=r['username'],name=r['name'],updated=r['updated']) for r in c.execute('SELECT member_details.*,users.username,users.name FROM member_details JOIN users ON users.id=uid')] if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
+    return {'version':version,'importedPeople':imported_people() if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':[dict(json.loads(r['payload']),uid=r['uid'],discordName=r['username'],name=r['name'],updated=r['updated']) for r in c.execute('SELECT member_details.*,users.username,users.name FROM member_details JOIN users ON users.id=uid')] if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
     if op=='member_details':
@@ -108,7 +123,7 @@ def mutate(c,user,data,config):
     if op=='preferences':
         p=data.get('preferences');valid={}
         if not isinstance(p,dict):raise Problem(400,'Invalid preferences.')
-        for k,choices in {'theme':['forest','maple','night','plain'],'layout':['feed','cards','compact','lanes','list','board'],'menuFontSize':[14,15,17,19],'menuFontWeight':['400','600','700'],'menuSpacing':['compact','comfortable','spacious'],'menuStyle':['simple','soft','outlined'],'density':['compact','balanced','roomy'],'fontScale':[100,115,130,150],'sort':['original','votes','newest','alphabetical','author','comments']}.items():
+        for k,choices in {'theme':['forest','maple','night','plain'],'layout':['feed','cards','compact','lanes','list','board'],'menuFontSize':[14,15,16,17,18,19,20,22],'menuFontWeight':['400','600','700'],'menuSpacing':['compact','comfortable','spacious'],'menuStyle':['simple','soft','outlined'],'density':['compact','balanced','roomy'],'fontScale':[100,115,130,150],'sort':['original','votes','newest','alphabetical','author','comments']}.items():
             if k in p:
                 if p[k] not in choices:raise Problem(400,'Invalid preference.')
                 valid[k]=p[k]
@@ -164,6 +179,7 @@ def mutate(c,user,data,config):
             p.setdefault('status','Open');p.setdefault('tags',[]);p.setdefault('group','');p.setdefault('history',[]);p['scope']='Shared community request'
         else:
             p['summary']=text(f,'summary',4000,True);p['category']=text(f,'category',80,True);p.setdefault('status','For discussion')
+            if p['category'] not in GOVERNANCE_CATEGORIES:raise Problem(400,'Choose a governance category.')
         p.setdefault('created',now());id=id or 'shared-'+secrets.token_hex(12)
         for key in ('id','uid','revision','canEdit'):p.pop(key,None)
         c.execute('INSERT INTO records(id,kind,uid,payload) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=records.revision+1',(id,kind,uid,json.dumps(p)))
@@ -171,17 +187,29 @@ def mutate(c,user,data,config):
     r=record(c,kind,id)
     if op=='relation':
         relation=text(data,'relation',30,True);enabled=data.get('enabled')
-        if type(enabled) is not bool or relation not in ('vote','join','follow','saved'):raise Problem(400,'Invalid action.')
+        if type(enabled) is not bool or relation not in ('vote','join','follow'):raise Problem(400,'Invalid action.')
         if relation=='join' and kind!='Ideas':raise Problem(400,'Join is for ideas.')
         target=kind+':'+id;payload={}
         if relation=='vote' and kind=='Features':
-            root=canonical(c,id);family=[x['id'] for x in c.execute("SELECT id FROM records WHERE kind='Features'") if canonical(c,x['id'])==root]
+            links={x['id']:json.loads(x['payload']).get('duplicateOf') for x in c.execute("SELECT id,payload FROM records WHERE kind='Features'")}
+            roots={}
+            def root_of(key):
+                seen=[]
+                while key not in roots:
+                    if key in seen:raise Problem(400,'Duplicate links cannot form a loop.')
+                    if key not in links:raise Problem(404,'Linked feature is unavailable.')
+                    seen.append(key)
+                    if not links[key]:roots[key]=key;break
+                    key=links[key]
+                for item in seen:roots[item]=roots[key]
+                return roots[key]
+            root=root_of(id);family=[key for key in links if root_of(key)==root]
             for fid in family:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,'vote','Features:'+fid))
             target='Features:'+root
         if relation=='join':payload={'role':text(data,'role',100) or 'Joined the discussion','capacity':text(data,'capacity',100)}
         if enabled:c.execute('INSERT INTO relations VALUES(?,?,?,?) ON CONFLICT(uid,kind,target) DO UPDATE SET payload=excluded.payload',(uid,relation,target,json.dumps(payload)))
         else:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,relation,target))
-        if relation not in ('saved','follow'):event(c,uid,kind,id,{'vote':'Votes','join':'Membership'}[relation],('added support' if enabled else 'withdrew support') if relation=='vote' else ('joined or updated their contribution' if enabled else 'left the idea'))
+        if relation!='follow':event(c,uid,kind,id,{'vote':'Votes','join':'Membership'}[relation],('added support' if enabled else 'withdrew support') if relation=='vote' else ('joined or updated their contribution' if enabled else 'left the idea'))
         return {}
     if op=='status':
         if not allowed(r,user,config) and not(kind=='Tasks' and r.get('assignee')==uid):raise Problem(403,'Only the author, assigned member, or a maintainer can change this status.')
@@ -189,8 +217,7 @@ def mutate(c,user,data,config):
         stages={'Ideas':['Idea','Challenge','Refine','Vote','Scope & build','Review'],'Tasks':['To do','In progress','Needs review','Blocked','Done'],'Features':['Open','Under review','Planned','In progress','Complete','Closed']}
         if status not in stages.get(kind,[]):raise Problem(400,'Invalid status.')
         if kind=='Ideas' and id.startswith('live-'):
-            existing=c.execute('SELECT 1 FROM records WHERE id=?',(id,)).fetchone()
-            if not existing:c.execute('INSERT INTO records(id,kind,uid,payload) VALUES(?,?,?,?)',(id,kind,r['uid'],json.dumps({'title':r['title']})))
+            raise Problem(400,'Stages are not enabled for member idea posts.')
         r['status']=status
     elif op in ('organize','release'):
         if kind!='Features' or uid not in config.get('admin_ids',[]):raise Problem(403,'A community maintainer manages feature organization and releases.')
@@ -203,5 +230,6 @@ def mutate(c,user,data,config):
             r.setdefault('releases',[]).insert(0,note);r['status']='Complete'
     else:raise Problem(400,'Unknown action.')
     r.setdefault('history',[]).insert(0,{'text':user['name']+' updated '+op,'date':now()})
+    r['history']=r['history'][:20]
     c.execute('UPDATE records SET payload=?,revision=revision+1 WHERE id=?',(json.dumps(r),id))
     event(c,uid,kind,id,'Releases' if op=='release' else 'Status' if op=='status' else 'Organization','updated '+op,r.get('status',''));return {}

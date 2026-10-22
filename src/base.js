@@ -52,7 +52,7 @@ let state = {
 };
 try {
   let x = JSON.parse(localStorage.getItem(KEY) || "null");
-  if (x && Array.isArray(x.votes) && Array.isArray(x.custom))
+  if (location.hostname !== "maple-forge.ca" && x && Array.isArray(x.votes) && Array.isArray(x.custom))
     state = { ...state, ...x };
 } catch (e) {
   storageOK = false;
@@ -204,7 +204,7 @@ function renderCards() {
             `<article class="card"><div class="card-top"><span class="tag ${i.category === "Climate & resources" ? "ochre" : ""}">${esc(i.category)}</span><button class="save ${state.saved.includes(i.id) ? "selected" : ""}" data-save="${i.id}" aria-label="${state.saved.includes(i.id) ? "Unsave" : "Save"} ${esc(i.title)}" aria-pressed="${state.saved.includes(i.id)}">${icon("save")}</button></div><h3><button class="title-btn" data-open="${i.id}">${esc(i.title)}</button></h3><p>${esc(i.summary)}</p><div class="author"><span class="avatar">${esc(initials(i.proposer))}</span><strong>${memberName(i.proposer)}</strong><span>${esc(state.stages[i.id] || "Idea")}</span></div><div class="card-footer"><button class="vote ${state.votes.includes(i.id) ? "selected" : ""}" data-vote="${i.id}" aria-label="Support ${esc(i.title)}" aria-pressed="${state.votes.includes(i.id)}">↑ <b>${state.votes.includes(i.id) ? 1 : 0}</b></button><button class="comment-link" data-open="${i.id}">${icon("chat")} ${(state.comments[i.id] || []).length}</button><button class="open" data-open="${i.id}">Discuss →</button></div></article>`,
         )
         .join("")
-    : '<div class="empty"><h2>Room for a possibility.</h2><p class="muted">No ideas match this view. Try another theme or save an idea that interests you.</p></div>';
+    : window.MF && !window.MF.account ? '<div class="empty"><h2>Sign in to see community ideas.</h2><p>Member proposals and discussions are visible only to signed-in MapleForge members.</p></div>' : '<div class="empty"><h2>Room for a possibility.</h2><p class="muted">No ideas match this view. Try another theme or save an idea that interests you.</p></div>';
   $("#result-count").textContent =
     `Showing ${list.length} of ${allIdeas().length} ideas`;
   $$("[data-open]").forEach(

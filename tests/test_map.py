@@ -6,6 +6,7 @@ class MapTests(unittest.TestCase):
  def setUp(self):
   self.c=sqlite3.connect(':memory:');self.c.row_factory=sqlite3.Row;shared.init(self.c)
   self.user={'uid':'alice'}
+ def tearDown(self):self.c.close()
  def save(self,**kw):
   data={'op':'map_pin','lat':45.5,'lng':-73.5,'label':'Montréal, Québec','consent':True,'flags':['CA','CA-QC']};data.update(kw)
   return shared.mutate(self.c,self.user,data,{})

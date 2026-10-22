@@ -13,9 +13,12 @@ if (location.hostname === "maple-forge.ca") {
       body: data ? JSON.stringify(data) : undefined,
     });
     let value = await r.json();
-    if (!r.ok) throw Error(value.error || "Could not save. Please try again.");
+    if (!r.ok) { const error=Error(value.error || "Could not save. Please try again."); error.status=r.status; throw error; }
     return value;
   }
+  const signInReason=new URLSearchParams(location.search).get('signin');
+  const signInMessages={expired:'Sign-in expired. Please try again.',membership:'Only MapleForge Discord members can sign in.',screening:'Complete membership screening in Discord, then try again.',unavailable:'Sign-in is temporarily unavailable. Please try again shortly.'};
+  if(signInMessages[signInReason]){queueMicrotask(()=>toast(signInMessages[signInReason]));history.replaceState(null,'',location.pathname+location.search.replace(/([?&])signin=[^&]*&?/, '$1').replace(/[?&]$/,''));}
   const accountBox = document.createElement("div");
   accountBox.className = "member-account";
   $(".sidebar-bottom").prepend(accountBox);
@@ -89,9 +92,10 @@ if (location.hostname === "maple-forge.ca") {
     formTab(
       "member-profile-editor",
       "My profile",
-      `<p>Connected as @${esc(account.username)}. Your Discord account keeps ownership of this profile.</p><label class="form-field">Display name<input name="name" required maxlength="80" value="${esc(account.name)}"></label><p class="small muted">This changes your portal display name. Your Discord username stays linked to your account.</p>`,
+      `<p>Connected as @${esc(account.username)}. Your Discord account keeps ownership of this profile.</p><label class="form-field">Display name<input name="name" required maxlength="80" value="${esc(account.name)}"></label><p class="small muted">This changes your portal display name. Your Discord username stays linked to your account.</p><p><button type="button" class="btn secondary" id="open-privacy">My content & privacy</button></p>`,
       (f) => api("/api/profile", f),
     );
+    document.getElementById("open-privacy").onclick=()=>window.MF.openPrivacy();
   }
   const proposalFields = [
     ["problem", "Problem or opportunity", "What could this solve or improve?"],
@@ -142,9 +146,8 @@ if (location.hostname === "maple-forge.ca") {
       : "Add a comment";
     host.innerHTML = '<p class="muted">Loading community comments…</p>';
     try {
-      let data = await api(
-        "/api/comments?target=" + encodeURIComponent(target),
-      );
+      const cached=window.MF?.bookmarkData?.comments;
+      const data=cached ? {comments:cached.filter(c=>c.target===target)} : await api("/api/comments?target=" + encodeURIComponent(target));
       if (!host.isConnected) return;
       host.innerHTML = `<h3>Community comments · ${data.comments.length}</h3>${data.comments.map((c) => `<div class="request-comment" data-comment-id="${esc(c.id)}"><strong>${memberName(c.author)}</strong><small> · ${portalTimeHtml(c.created * 1000)}</small><p class="shared-text">${esc(c.body)}</p></div>`).join("") || '<p class="muted">Start the conversation.</p>'}${account ? '<form><label class="form-field">' + esc(commentLabel) + '<textarea name="body" required maxlength="4000"></textarea></label><p class="form-error" role="alert"></p><button class="btn" type="submit">Post comment</button></form>' : ""}`;
       window.MF?.rulesReminder?.(host);

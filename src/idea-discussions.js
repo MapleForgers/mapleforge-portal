@@ -1,10 +1,10 @@
 // Imported correspondence is read-only context, separate from portal comments.
-// Private idea content is supplied at build time and never bundled in source.
+// Private idea content arrives only through the authenticated shared API.
 function renderIdeaDiscussion(idea) {
   const messages = Array.isArray(idea?.discussion) ? idea.discussion : [];
   if (!messages.length) return '';
   const renderMessage = (message) => {
-    return `<article class="harvest-message"><header><strong>${memberName(message.author)}</strong><time datetime="${esc(message.time)}">${portalTimeHtml(message.time)}</time></header><p class="shared-text harvest-quote">${esc(message.text)}</p>${message.attachments?.length ? `<p class="shared-text small">${message.attachments.map(esc).join(', ')}</p>` : ''}<small class="harvest-source">${esc(message.channel)} · ${esc(message.id)}</small></article>`;
+    return `<article class="harvest-message"><header><strong>${memberName(message.author)}</strong><time datetime="${esc(message.time)}">${portalTimeHtml(message.time)}</time></header><p class="shared-text harvest-quote">${esc(message.text)}</p></article>`;
   };
   const original = messages.filter(m => m.role === 'Original proposal');
   const replies = messages.filter(m => m.role !== 'Original proposal');

@@ -20,7 +20,7 @@ Working shared features:
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
 - Section URLs and page titles that follow navigation, with reload and browser Back/Forward support.
 
-Ideas, comments, profiles, votes, idea memberships and contributions, feature requests, task records, governance proposals, and activity now use shared SQLite storage. Bookmarks, follows, and appearance preferences belong to the signed-in account. Shared views refresh every 15 seconds while visible. Unsent form drafts stay in session storage until submitted; earlier browser-only drafts can be reviewed and published explicitly.
+Ideas, comments, profiles, votes, idea memberships and contributions, feature requests, task records, governance proposals, and activity now use shared SQLite storage. Bookmarks, follows, and appearance preferences belong to the signed-in account. Visible shared views check a content revision every 15 seconds and reload only when it changes. Unsent form drafts stay in session storage until submitted; earlier browser-only drafts can be reviewed and published explicitly.
 
 The Discord chat assistant and notification delivery are not implemented. Follow-up dates are stored, but do not send reminders.
 
@@ -31,7 +31,8 @@ The Discord chat assistant and notification delivery are not implemented. Follow
 - `server/gate.py`: shared-password preview gate.
 - `server/members.py`: Discord OAuth, sessions and shared content API.
 - `server/shared.py`: transactional boards, permissions, participation, and activity.
-- `build.py`: static build with optional external community content.
+- `build.py`: static build containing no imported community content.
+- `server/privacy.py`: owner-authorized removal of content and accounts.
 
 The repository contains no community chat exports, member seed profiles, credentials, database, test posts or installation logs. Required runtime secrets and community content are managed separately.
 
@@ -46,22 +47,17 @@ python3 -m http.server 8080 --directory dist
 
 Open `http://localhost:8080/portal1/`. This local view runs the browser prototype. The live member module activates on `maple-forge.ca` and requires the HTTPS backend described below. A clean build starts without imported community records.
 
-Optional private content can be supplied from a directory outside the repository:
-
-```sh
-python3 build.py --content-dir /path/to/private/content
-```
-
-The directory can contain `ideas.json`, `people.json` and `governance.json`, each holding a JSON array. Missing files are treated as empty arrays. Do not commit these files or the resulting private build. Generated files are written to `dist/`, which is ignored by Git.
+Private community records must never be embedded in HTML. `--content-dir` is rejected. Imports belong in the restricted database or the protected `IMPORTED_PEOPLE` file, and are read only through authenticated APIs. Generated files are written to `dist/`, which is ignored by Git. Each build cleans only that directory and marks an uncommitted tree with `-dirty`.
 
 ## Server configuration
 
-The services bind to localhost and require an HTTPS reverse proxy. Serve `dist/` as the web root. Keep the database and configuration outside that root. Deploy both `members.py` and `shared.py` into the same service directory. Imported community records must be loaded separately into the `records` table; private seed content is not in this repository.
+The services bind to localhost and require an HTTPS reverse proxy. Serve `dist/` as the web root. Keep the database and configuration outside that root. Deploy `members.py`, `shared.py` and `privacy.py` into the same service directory. Imported community records must be loaded separately into the `records` table; private seed content is not in this repository.
 
 The gate reads `GATE_CONFIG`, defaulting to `/etc/mapleforge/gate.json`. Configuration fields:
 
 - `salt`: random salt encoded as hexadecimal.
-- `password_hash`: PBKDF2-HMAC-SHA256 of the shared password, using that salt and 200,000 iterations, encoded as hexadecimal.
+- `password_hash`: PBKDF2-HMAC-SHA256 of the shared password, using that salt and the configured iteration count, encoded as hexadecimal.
+- `iterations`: use 600,000 for a newly generated hash. Legacy configurations without this field retain 200,000 until the hash is rotated. Changing this field alone invalidates password verification.
 - `cookie_key`: a separate cryptographically random signing key encoded as hexadecimal.
 
 The member service reads `MEMBER_CONFIG`, defaulting to `/etc/mapleforge/discord.json`. Configuration fields:
@@ -84,8 +80,9 @@ Use a service manager for production. The gate listens on `127.0.0.1:8781` and t
 
 Reverse proxy requirements:
 
-- Forward `/preview-access` to the gate.
-- Protect `/portal1/` and `/api/` with an internal auth subrequest to the gate's `/check` endpoint, forwarding cookies.
+- Forward `/preview-access` to the gate and overwrite `X-Real-IP` with nginx `$remote_addr`. Never accept a browser-supplied client identity.
+- Rate-limit `/auth/` by `$binary_remote_addr` using `config/auth-rate-limit.conf`.
+- Protect `/auth/`, `/portal1/` and `/api/` with an internal auth subrequest to the gate's `/check` endpoint, forwarding cookies.
 - Redirect unauthorized portal requests to `/preview-access`; reject unauthorized API requests.
 - Forward `/auth/` and authorized `/api/` requests to the member service, preserving request headers and cookies.
 - Disable access logging for OAuth callback requests so authorization codes do not enter logs.
@@ -101,7 +98,7 @@ Members first enter the private preview using the shared community word, then se
 ## Before broader release
 
 - Establish and test database backups and restoration.
-- Add member-facing deletion, moderation and abuse-handling workflows.
+- Agree on moderation, abuse handling and recovery-backup retention with the community.
 - Review privacy information and retention with the community.
 - Complete accessibility, concurrency and load testing.
 
@@ -209,9 +206,9 @@ Project Debate is currently withdrawn from the portal. Older `?section=debate` l
 
 The shared preview password is a temporary entry gate, not member authentication. Its salted PBKDF2 hash is stored outside this repository. Preview cookies are bound to the configured password hash, so changing the hash or cookie key invalidates existing preview cookies after service restart.
 
-Install `config/preview-rate-limit.conf` in nginx's HTTP context and add the documented directives to `/preview-access`: six POST attempts per minute per IP, with a burst allowance of five, returning HTTP 429. The gate also caps total hash attempts at 20 per minute and permits at most two concurrent hashes. GET requests do not consume the password-attempt quota.
+Install `config/preview-rate-limit.conf` in nginx's HTTP context and add the documented directives to `/preview-access`: six POST attempts per minute per IP, with a burst allowance of five, returning HTTP 429. The gate also limits each proxy-verified client to six attempts per minute and permits at most two concurrent hashes. There is no shared quota that one visitor can exhaust for everyone. GET requests do not consume the password-attempt quota.
 
-`/api/shared`, `/api/community`, and `/api/comments` require a valid Discord member session. Signed-out clients skip those reads. The original curated preview content remains visible behind the preview gate.
+`/api/shared`, `/api/community`, and `/api/comments` require a valid Discord member session. Signed-out clients skip those reads. Imported profiles, proposals and captured correspondence also require that session. The shared word opens an empty portal shell only. Raw Discord message IDs, channel names, attachment filenames and source URLs are omitted from imported idea responses.
 
 Discord membership is checked on the first request after a five-minute cache expires. Membership removal, pending screening, invalid access tokens or token expiry revoke the session. Transient verification failures deny the request without renewing membership. Access tokens exist only in process memory, never in the database or logs; refresh tokens are not retained. Restarting the member service therefore requires fresh Discord sign-in. Existing 24-hour session expiry remains an upper bound. For immediate manual revocation, an administrator can delete that member's session rows from the protected database.
 
@@ -239,7 +236,7 @@ Private `ideas.json` records can include a `category`, `discussionNote`, and a
 `Follow-up discussion`), and optional `attachments` (filenames). These messages
 are escaped, read-only excerpts shown within the idea detail. Member-written
 quotes stay in their original language. Interface labels support English and
-French. Source message metadata is displayed without external navigation.
+French. Only the author, timestamp, text and message role are returned for display. Source message metadata remains server-side.
 
 Imported correspondence does not create portal comments, votes, memberships or
 activity entries. Preserve message IDs and existing idea IDs when refreshing
@@ -274,3 +271,13 @@ Deploy `server/shared.py` alongside the built portal and `public/flags` and `pub
 ## Member details
 
 The native member directory uses the contact form fields, with fictional examples kept separate from real entries. Signed-in MapleForge members may read submitted entries. The server derives ownership from the session and permits only the owner to save or remove their entry. All fields are optional, contact information requires an explicit sharing acknowledgement, and no contact data is copied to Activity. The `member_details` table is created automatically on service startup. Spreadsheet responses are not bundled or imported by this feature.
+
+## Security review rollup
+
+- All authenticated writes have a per-member limit of 60 requests per minute, with comments additionally limited to 15 per minute. These counters are process-local and reset on restart; this deployment runs one member process.
+- Membership checks release the shared lock before contacting Discord. Failed checks never renew authorization.
+- My profile contains **My content & privacy**, where owners can remove their posts, board entries, comments or entire portal account. Item deletion also removes its comments and Activity/bookmark copies. Imported Discord summaries are separately maintained and not automatically linked to account deletion. Protected recovery backups follow the operator's retention policy.
+- Both session cookies use the `__Host-` prefix. Deploying the rename requires one fresh preview entry and Discord sign-in.
+- `IMPORTED_PEOPLE` defaults to `/var/lib/mapleforge/imported-people.json`. Keep it outside the web root with service-only read access. After changing this external file, increment `content_version.value` in the database or restart and have members sign in again. Database triggers track all portal content mutations, including preferences and bookmarks, so polling does not miss changes without Activity events.
+- Idea and governance categories are checked on the server. Feature history is capped at 20 entries. Member-created ideas are not copied into imported records for stage changes.
+- The checks in `.github/workflows/checks.yml` run the Python suite, JavaScript tests and a clean build. Run the same commands locally before deploying. Broad Python formatting is intentionally a separate review to keep this security diff readable.

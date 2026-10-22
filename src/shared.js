@@ -89,6 +89,8 @@ if (window.MF) {
     sharedData = M.account ? await M.api("/api/shared") : { records: [], relations: [], comments: [], activity: [] };
     M.bookmarkData = sharedData;
     const records = sharedData.records;
+    seed.splice(0,seed.length,...records.filter(r=>r.board==='Ideas').map(r=>({...r,proposer:r.proposer||r.author,stage:r.status||'Idea',imported:true})));
+    peopleSeeds.splice(0,peopleSeeds.length,...(sharedData.importedPeople||[]));
     M.framework = records.find(
       (r) => r.board === "Framework" && r.id === "project-framework-v01",
     );
@@ -223,7 +225,7 @@ if (window.MF) {
       return;
     }
     return change(
-      { op: "relation", kind, id, relation: type, enabled, ...extra },
+      { op: type === "saved" ? "bookmark" : "relation", kind, id, relation: type, enabled, ...extra },
       after,
     );
   }
@@ -297,15 +299,7 @@ if (window.MF) {
         await M.refresh();
         render();
         after?.(result);
-        toast(
-          data.relation === "saved"
-            ? data.enabled
-              ? "Saved to your Bookmarks"
-              : "Removed from your Bookmarks"
-            : data.relation === "follow"
-              ? "Updated your follows"
-              : "Saved for the community",
-        );
+        toast("Saved for the community");
       } catch (e) {
         error.textContent = e.message;
       } finally {
@@ -716,6 +710,10 @@ if (window.MF) {
     if (refreshing) return;
     refreshing = true;
     try {
+      if (!force && M.account && sharedData) {
+        try { const check=await M.api('/api/version'); if(check.version===sharedData.version)return; }
+        catch(err){if(err.status!==401)throw err;}
+      }
       const before = JSON.stringify(sharedData);
       await M.refresh();
       if (force || JSON.stringify(sharedData) !== before) {

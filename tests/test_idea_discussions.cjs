@@ -11,7 +11,7 @@ const output = context.renderIdeaDiscussion({discussion:[message,{...message,id:
 assert.match(output,/Original proposal/);
 assert.match(output,/Earlier discussion/);
 assert.match(output,/&lt;script&gt;/);
-assert.match(output,/&lt;unsafe&gt;/);
+assert.doesNotMatch(output,/unsafe|harvest-source/);
 assert.doesNotMatch(output,/<script>|<img|href=|Post comment/);
 assert.match(output,/These are not new portal comments or recorded votes/);
 assert.equal((output.match(/class="harvest-message"/g)||[]).length,2);

@@ -1,14 +1,19 @@
+let portalValidatedZone;
 // A per-browser display preference. Stored timestamps are never changed.
 function portalTimeZone() {
-  try { const zone=localStorage.getItem('mapleforge-timezone') || ''; if(zone) new Intl.DateTimeFormat('en',{timeZone:zone}); return zone; } catch (_) { return ''; }
+  try { const zone=localStorage.getItem('mapleforge-timezone') || ''; if(zone!==portalValidatedZone){if(zone)new Intl.DateTimeFormat('en',{timeZone:zone});portalValidatedZone=zone;}return zone; } catch (_) { return ''; }
 }
+let portalTimeFormatter,portalTimeFormatterKey;
 function portalFormatTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   const zone = portalTimeZone();
   const options = {year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'};
   if (zone) options.timeZone = zone;
-  return date.toLocaleString(document.documentElement.lang || 'en-CA', options);
+  const locale=document.documentElement.lang||'en-CA';
+  const key=locale+'|'+zone;
+  if(key!==portalTimeFormatterKey){portalTimeFormatter=new Intl.DateTimeFormat(locale,options);portalTimeFormatterKey=key;}
+  return portalTimeFormatter.format(date);
 }
 function portalTimeHtml(value) {
   const date = new Date(value);
@@ -18,6 +23,9 @@ function portalTimeHtml(value) {
 (function () {
   function refresh() {
     document.querySelectorAll('[data-portal-time]').forEach(node => {
+      const key=(document.documentElement.lang||'en-CA')+'|'+portalTimeZone()+'|'+node.dataset.portalTime;
+      if(node.dataset.portalFormatted===key)return;
+      node.dataset.portalFormatted=key;
       const text = portalFormatTime(node.dataset.portalTime);
       if (node.textContent !== text) node.textContent = text;
     });
