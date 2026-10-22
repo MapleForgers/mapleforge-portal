@@ -196,3 +196,9 @@ Section navigation writes `?section=<section-id>` into browser history and updat
 ### Saved collections
 
 Bookmarks is the first sidebar link and shows a private saved-item count. Members can save items, boards, comments and activity entries. Green filled controls indicate saved items. Private bookmarks are returned only to their owner.
+
+### Language and branding
+
+The sidebar offers English and Canadian French next to Appearance. An explicit language choice is stored in this browser. Without one, the first supported language in the browser language preferences selects the interface, including `fr-CA`. No location lookup is used. Interface translations live in `src/locale.js`; member-written content stays in its original language. Form option values remain canonical when their visible labels are translated.
+
+The approved red-leaf wordmark is in `public/mapleforge-wordmark.png`. The Project Framework header is compact and has no whole-page bookmark control.

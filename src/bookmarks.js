@@ -283,7 +283,7 @@ if (window.MF) {
     const head = document.querySelector("#main h1");
     if (
       head &&
-      !["bookmarks", "picks", "contributions"].includes(view) &&
+      !["bookmarks", "picks", "contributions", "framework"].includes(view) &&
       Object.values(sections)
         .concat(["activity", "process", "rules"])
         .includes(view)

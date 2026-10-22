@@ -13,7 +13,7 @@ def content(name):
     if not isinstance(value,list):raise ValueError(name+' must contain a JSON array')
     return value
 def encode(value):return json.dumps(value,ensure_ascii=False).replace('</','<\\/')
-modules=['base','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','sidebar']
+modules=['base','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','sidebar','locale']
 seeds='const governanceSeeds='+encode(content('governance'))+';\nconst peopleSeeds='+encode(content('people'))+';\n'
 js=seeds+'\n'.join((ROOT/'src'/f'{name}.js').read_text() for name in modules)
 css='\n'.join((ROOT/'src'/f'{name}.css').read_text() for name in ['base','community'])

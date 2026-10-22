@@ -3533,21 +3533,107 @@ body #cards .save.bookmark-active {
 }
 body .nav .bookmarks-nav {
   font-weight: 650;
-  border: 1px solid rgba(230, 199, 120, .35);
+  border: 1px solid rgba(230, 199, 120, 0.35);
   margin-bottom: 0;
 }
 .bookmark-count {
   margin-left: auto;
   color: inherit;
-  opacity: .8;
-  font-size: .85em;
+  opacity: 0.8;
+  font-size: 0.85em;
 }
 .sidebar .nav .nav-group-start {
   margin-top: 9px;
-  border-top: 1px solid rgba(128, 128, 128, .25);
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
   border-radius: 0;
 }
-.sidebar .nav svg, .sidebar .nav [data-icon] { display: none; }
+.sidebar .nav svg,
+.sidebar .nav [data-icon] {
+  display: none;
+}
 .board-bookmark-controls {
   margin: 7px 0;
+}
+
+/* Compact appearance disclosure and language switch share one row. */
+#sidebar-preferences {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+#sidebar-preferences #sidebar-settings {
+  display: contents;
+}
+#sidebar-preferences #sidebar-settings summary {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 7px 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  box-shadow: none;
+}
+#sidebar-preferences .settings-fields {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+#sidebar-preferences details:not([open]) .settings-fields {
+  display: none;
+}
+.language-toggle {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  gap: 2px;
+}
+.language-toggle button {
+  padding: 4px 6px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.language-toggle button[aria-pressed="true"] {
+  border-color: currentColor;
+  font-weight: 750;
+}
+.sidebar .brand {
+  padding: 0;
+  margin-bottom: 12px;
+}
+.sidebar .brand .brand-wordmark {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.framework-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 6px;
+}
+.framework-header h1 {
+  margin: 0;
+  font-size: 1.65rem;
+}
+.framework-header a {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+.framework-page > p {
+  margin: 5px 0 9px;
+}
+.framework-page .framework-picker {
+  gap: 5px;
+  margin: 6px 0 10px;
+}
+.framework-page .framework-picker button {
+  padding: 7px 10px;
+  min-height: 34px;
 }

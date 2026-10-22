@@ -117,7 +117,7 @@
       `<button class="btn secondary ${selectedPhase === index ? "selected" : ""}" aria-pressed="${selectedPhase === index}" data-framework-phase="${index}">${esc(label)}</button>`;
     document.getElementById("main").innerHTML =
       `<section class="framework-page">
-      <div class="board-head"><div><span class="tag">Discussion draft · v0.1</span><h1>Project Framework</h1><p class="muted">Pick a phase. Question a rule. Help shape how we work together.</p></div>${sourceLink}</div>
+      <header class="framework-header"><h1>Project Framework</h1><span class="tag">Discussion draft · v0.1</span>${sourceLink}</header>
       <p class="small muted">These are proposals for discussion. Timings and decisions are not adopted or enforced yet.</p>
       <nav class="filter-chips framework-picker" aria-label="Framework phases">${chooser(-1, "Overview")}${phases.map(([label], i) => chooser(i, i + 1 + ". " + label)).join("")}</nav>
       <section class="panel framework-focus" aria-label="Selected framework phase">
