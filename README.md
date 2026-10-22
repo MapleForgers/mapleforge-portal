@@ -15,6 +15,7 @@ Working shared features:
 - Available skills and resources, offers and requests, availability and status.
 - A skill category index with counts, grouped listings and filtering.
 - A separate Project Framework discussion draft with seven selectable phases, point-specific feedback prompts and saved phase conversations.
+- Community Rules with the dated Discord source and reminders beside discussions.
 - Four themes, adjustable text size, compact lists, cards and workspace tabs.
 - Section URLs and page titles that follow navigation, with reload and browser Back/Forward support.
 

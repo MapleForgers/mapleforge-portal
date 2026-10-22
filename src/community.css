@@ -3459,3 +3459,20 @@ summary:focus-visible {
     flex-direction: column;
   }
 }
+
+.community-rules-list {
+  padding-left: 26px;
+}
+.community-rules-list li {
+  padding: 12px 6px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.community-rules-list li:last-child {
+  border-bottom: 0;
+}
+.community-rules-reminder .btn {
+  padding: 0 3px;
+  font: inherit;
+  text-decoration: underline;
+}
