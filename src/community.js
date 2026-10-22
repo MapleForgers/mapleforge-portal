@@ -50,14 +50,20 @@ renderCards = function () {
   if (state.preferences.layout === "lanes" && grid.querySelector(".card")) {
     let cards = [...grid.querySelectorAll(".card")];
     grid.innerHTML = "";
-    for (let stage of [
+    const stages = [
       "Idea",
       "Challenge",
       "Refine",
       "Vote",
       "Scope & build",
       "Review",
-    ]) {
+    ];
+    // Keep proposals and any other server status visible in the stage view.
+    for (const card of cards) {
+      const stage = state.stages[card.querySelector("[data-open]").dataset.open] || "Idea";
+      if (!stages.includes(stage)) stages.push(stage);
+    }
+    for (const stage of stages) {
       let column = document.createElement("section");
       column.className = "stage-column";
       let matching = cards.filter(

@@ -607,7 +607,7 @@ if (window.MF) {
             count("Ideas", b.querySelector("[data-open]").dataset.open) -
             count("Ideas", a.querySelector("[data-open]").dataset.open),
         )
-        .forEach((c) => $("#cards").append(c));
+        .forEach((c) => c.parentElement.append(c));
     }
   };
   const oldRequestResults = renderRequestResults;
@@ -839,17 +839,6 @@ if (window.MF) {
     );
     d.showModal();
   }
-  const recoveryRender = render;
-  render = function () {
-    recoveryRender();
-    if (oldDraftEntries().length && M.account) {
-      const b = document.createElement("button");
-      b.className = "btn link";
-      b.textContent = "Review earlier browser drafts";
-      b.onclick = recoverDrafts;
-      $(".member-account").append(b);
-    }
-  };
   setInterval(() => {
     if (!document.hidden) refresh();
   }, 15000);
