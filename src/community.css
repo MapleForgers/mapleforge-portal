@@ -3948,3 +3948,38 @@ body #main #cards.layout-feed .card { display:flex !important; flex-direction:co
 body #main #cards .card-footer .vote { position:static !important; inset:auto !important; width:auto !important; min-height:0 !important; flex-direction:row !important; padding:4px 8px !important; }
 body #main #cards .idea-quick-stats { grid-column:1/-1; }
 body #main #cards.layout-compact .idea-quick-stats { grid-column:2; }
+
+/* Readable supporting text across the portal, including compact themes. */
+body #main .small, body #main small, body #main .muted,
+body #main .author, body #main .author span:last-child,
+body #main .tag, body #main .request-meta, body #main .gov-summary,
+body #main button, body #main input, body #main select,
+body #main .tabs button, body #main .tabs button span,
+body #main .idea-quick-stats, body #main .idea-quick-stats button {
+  font-size:calc(15px * var(--text-scale,1)) !important;
+}
+body #main p, body .workspace-pane-host p,
+body #main label, body #main textarea {
+  font-size:calc(16px * var(--text-scale,1)) !important;
+  line-height:1.5;
+}
+body #main #cards .card .author strong,
+body #main #cards .card .member-name,
+body #main #cards .card-footer button {
+  font-size:calc(15px * var(--text-scale,1)) !important;
+}
+body #main #cards .author { flex-wrap:wrap; }
+body #main #cards .author span:last-child { color:var(--muted); }
+body #main #cards .card .title-btn { font-size:calc(24px * var(--text-scale,1)) !important; }
+body #main #cards.layout-compact .card .title-btn { font-size:calc(21px * var(--text-scale,1)) !important; }
+body #main .idea-quick-stats { gap:6px 10px; margin:6px 0; }
+body #main .idea-quick-stats > * { padding:4px 8px; border-radius:5px; font-weight:600; }
+body #main .idea-quick-stats > button { color:#075c76 !important; background:#e5f4fa !important; }
+body #main .idea-quick-stats > span:nth-child(2) { color:#7b450c; background:#fff0d8; }
+body #main .idea-quick-stats > span:nth-child(3) { color:#65428e; background:#f0e9fb; }
+body[data-theme="night"] #main .idea-quick-stats > button { color:#b6eaff !important; background:#183e50 !important; }
+body[data-theme="night"] #main .idea-quick-stats > span:nth-child(2) { color:#ffdb9b; background:#49381e; }
+body[data-theme="night"] #main .idea-quick-stats > span:nth-child(3) { color:#e0caff; background:#392d50; }
+body .workspace-tab, body .workspace-tabs button { font-size:calc(15px * var(--text-scale,1)) !important; }
+
+body #main .stats-totals, body #main .stats-origin, body #main .board-stat-bar span, body #main .board-stat-bar strong, body #main .footer-note, body .section-tabs .section-tab button { font-size:calc(15px * var(--text-scale,1)) !important; }
