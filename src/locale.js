@@ -1,5 +1,6 @@
 {
   const french = {
+"Time":"Heure", "Time zone":"Fuseau horaire", "Changes only your display.":"Change seulement votre affichage.",
 "reply":"réponse", "person replying":"personne ayant répondu", "Less than a day old":"Moins d’un jour", "day old":"jour depuis la publication",
 "replies":"réponses", "people replying":"personnes ayant répondu", "Posted today":"Publiée aujourd’hui", "days old":"jours depuis la publication", "Date unavailable":"Date indisponible", "min read":"min de lecture",
 "Original proposal":"Proposition originale", "Earlier discussion":"Discussion antérieure", "Selected messages from the original conversation. These are not new portal comments or recorded votes.":"Messages sélectionnés dans la conversation originale. Il ne s’agit pas de nouveaux commentaires du portail ni de votes enregistrés.", "No relevant follow-up messages were captured in this review.":"Aucun message de suivi pertinent n’a été recueilli lors de cette révision.",
@@ -884,7 +885,7 @@
         langs.setAttribute("role", "group");
         langs.setAttribute("aria-label", "Language / Langue");
         langs.innerHTML =
-          '<button type="button" lang="en" data-language="en" aria-label="English">English</button><button type="button" lang="fr" data-language="fr" aria-label="Français">Français</button>';
+          '<button type="button" lang="en" data-language="en" aria-label="English" title="English">EN</button><button type="button" lang="fr" data-language="fr" aria-label="Français" title="Français">FR</button>';
         langs.querySelectorAll("button").forEach(
           (b) =>
             (b.onclick = () => {
