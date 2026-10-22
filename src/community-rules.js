@@ -14,7 +14,7 @@
   nav.dataset.view = "rules";
   nav.textContent = "Community Rules";
   nav.onclick = () => switchSection("rules");
-  document.querySelector('.nav [data-view="process"]').after(nav);
+  document.querySelector(".nav").prepend(nav);
   const previousRender = render;
   render = function () {
     previousRender();
