@@ -264,7 +264,7 @@ Imported message text, member records and deployment configuration remain outsid
 
 ## Forgers’ Map
 
-Signed-in members can opt in to one shared map pin, choose an approximate position and location label, and edit or remove it. No GPS permission or automatic location lookup is used. Up to three optional country or Canadian provincial flags form one badge. Pins are only returned to signed-in members, and the server only allows members to change their own pin.
+Signed-in members can opt in to one shared map pin, choose their own position and location label, and edit or remove it. No GPS permission or automatic location lookup is used. Chosen coordinates are stored to five decimal places, not blurred. The editor explains that members can see the exact chosen spot and requires acknowledgement before saving. A broad-area point such as a city centre can be chosen instead of a home. Up to three optional country or Canadian provincial flags form one badge. Pins are only returned to signed-in members, and the server only allows members to change their own pin.
 
 Deploy `server/shared.py` alongside the built portal and `public/flags` and `public/vendor/leaflet` assets. Startup creates the `member_locations` table automatically. Back up the member database before deployment. Leaflet 1.9.4 and flag-icons 7.6.0 are vendored with license files. OpenStreetMap supplies map tiles directly to browsers; member pins are supplied by the portal.
 
@@ -281,3 +281,15 @@ The native member directory uses the contact form fields, with fictional example
 - `IMPORTED_PEOPLE` defaults to `/var/lib/mapleforge/imported-people.json`. Keep it outside the web root with service-only read access. After changing this external file, increment `content_version.value` in the database or restart and have members sign in again. Database triggers track all portal content mutations, including preferences and bookmarks, so polling does not miss changes without Activity events.
 - Idea and governance categories are checked on the server. Feature history is capped at 20 entries. Member-created ideas are not copied into imported records for stage changes.
 - The checks in `.github/workflows/checks.yml` run the Python suite, JavaScript tests and a clean build. Run the same commands locally before deploying. Broad Python formatting is intentionally a separate review to keep this security diff readable.
+
+### Directory identity choice
+
+Directory cards show the name a member enters. Discord handles are hidden by default, including for existing entries, and only included in the directory API when the owner enables the separate handle-sharing option. Hidden-handle entries omit the Discord account ID and portal display name as well; the current owner receives an `isOwn` flag for editing. This avoids an explicit identifier link, but does not promise anonymity if someone supplies identifying information. The sharing acknowledgement explains that access is available to people with the preview word who pass Discord server screening, not an individually vetted audience.
+
+### Discord contribution permissions
+
+Signed-in members without a current consent choice see a separate portal notice. Existing and future Discord contributions have separate, unchecked permissions. Declining does not restrict portal access. Escape defers the notice without granting permission. Members can revise their choices through My profile → My content & privacy → Discord sharing permissions.
+
+The authenticated API stores the current notice version, both choices and UTC time in `discord_consent`, with changes in `discord_consent_history`. Choices are private to their owner and are removed on account deletion. The notice excludes DMs and private channels. A new notice version requires a fresh choice.
+
+This is consent collection, not a Discord bot or an automatic harvesting service. Import tooling must call `shared.may_import_discord` using a verified Discord account ID and the appropriate existing/future category before copying anything. Unknown identities and unanswered or outdated consent are denied. Do not match authors by display name. Designated channels must be established before future harvesting is enabled. Existing imported summaries have not been reliably matched to accounts; this change does not retroactively authorize them or automatically remove them. Administrators must reconcile those imports and removal requests separately before treating the privacy review as resolved.

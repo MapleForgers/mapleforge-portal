@@ -16,6 +16,8 @@ def init(c):
     CREATE TABLE IF NOT EXISTS member_locations(uid TEXT PRIMARY KEY,lat REAL NOT NULL,lng REAL NOT NULL,label TEXT NOT NULL,flags TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS pending_map_activity(uid TEXT PRIMARY KEY,action TEXT NOT NULL,due REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS member_details(uid TEXT PRIMARY KEY,payload TEXT NOT NULL,updated REAL NOT NULL);
+    CREATE TABLE IF NOT EXISTS discord_consent(uid TEXT PRIMARY KEY,version TEXT NOT NULL,existing INTEGER NOT NULL,future INTEGER NOT NULL,updated TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS discord_consent_history(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,version TEXT NOT NULL,existing INTEGER NOT NULL,future INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
 def revision(c):
@@ -60,6 +62,28 @@ def clean_record(r):
     if 'discussion' in r:r['discussion']=[{k:v for k,v in m.items() if k in ('author','text','time','role')} for m in r['discussion']]
     for key in ('source','channel','messageId','attachments'):r.pop(key,None)
     return r
+def directory_entries(c,uid):
+    entries=[]
+    for row in c.execute('SELECT member_details.*,users.username FROM member_details JOIN users ON users.id=uid'):
+        stored=json.loads(row['payload'])
+        # Do not expose account IDs or portal names that link a hidden handle.
+        entry={k:stored.get(k,'') for k in ('firstName','lastName','province','city','email','linkedin','background','skills','interests','hours')}
+        entry['showDiscordName']=stored.get('showDiscordName') is True
+        entry['name']=' '.join(x for x in (entry['firstName'],entry['lastName']) if x) or 'Member'
+        entry['isOwn']=row['uid']==uid
+        if entry['showDiscordName']:entry['discordName']=row['username']
+        entries.append(entry)
+    return entries
+
+CONSENT_VERSION='2026-10-22-v1'
+def consent_status(c,uid):
+    row=c.execute('SELECT * FROM discord_consent WHERE uid=?',(uid,)).fetchone()
+    return {'version':CONSENT_VERSION,'answered':bool(row and row['version']==CONSENT_VERSION),'existing':bool(row and row['existing']),'future':bool(row and row['future']),'updated':row['updated'] if row else None}
+def may_import_discord(c,uid,existing=True):
+    # Importers must use verified Discord IDs, never a display-name match.
+    choice=consent_status(c,uid)
+    return choice['answered'] and choice['existing' if existing else 'future']
+
 def snapshot(c,user,config):
     flush_map_activity(c)
     version=revision(c)
@@ -80,17 +104,27 @@ def snapshot(c,user,config):
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
         activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
-    return {'version':version,'importedPeople':imported_people() if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':[dict(json.loads(r['payload']),uid=r['uid'],discordName=r['username'],name=r['name'],updated=r['updated']) for r in c.execute('SELECT member_details.*,users.username,users.name FROM member_details JOIN users ON users.id=uid')] if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
+    return {'discordConsent':consent_status(c,uid),'version':version,'importedPeople':imported_people() if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':directory_entries(c,uid) if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
+    if op=='discord_consent':
+        if data.get('version')!=CONSENT_VERSION:raise Problem(409,'The consent notice changed. Refresh and review it again.')
+        if any(type(data.get(k)) is not bool for k in ('existing','future')):raise Problem(400,'Choose both sharing permissions.')
+        values=(uid,CONSENT_VERSION,int(data['existing']),int(data['future']),now())
+        c.execute('INSERT INTO discord_consent VALUES(?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET version=excluded.version,existing=excluded.existing,future=excluded.future,updated=excluded.updated',values)
+        c.execute('INSERT INTO discord_consent_history(uid,version,existing,future,updated) VALUES(?,?,?,?,?)',values)
+        return {'discordConsent':consent_status(c,uid)}
     if op=='member_details':
         if data.get('remove') is True:
             c.execute('DELETE FROM member_details WHERE uid=?',(uid,));return {}
         if data.get('consent') is not True:raise Problem(400,'Confirm sharing your details with signed-in members.')
         fields=data.get('fields')
         if not isinstance(fields,dict):raise Problem(400,'Invalid member details.')
+        show_discord=fields.get('showDiscordName',False)
+        if type(show_discord) is not bool:raise Problem(400,'Choose whether to show your Discord username.')
         limits={'firstName':80,'lastName':80,'province':80,'city':120,'email':254,'linkedin':300,'background':4000,'skills':2000,'interests':2000}
         payload={k:text(fields,k,limit) for k,limit in limits.items()}
+        payload['showDiscordName']=show_discord
         if payload['province'] not in ('','Alberta','British Columbia','Manitoba','New Brunswick','Newfoundland and Labrador','Nova Scotia','Northwest Territories','Nunavut','Ontario','Prince Edward Island','Québec','Saskatchewan','Yukon','Outside Canada'):raise Problem(400,'Choose a province or territory.')
         if payload['email'] and ('@' not in payload['email'] or any(ch.isspace() for ch in payload['email'])):raise Problem(400,'Enter a valid email address.')
         if payload['linkedin']:
