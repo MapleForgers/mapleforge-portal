@@ -55,7 +55,7 @@ if (window.MF) {
       map=L.map('forgers-map',{minZoom:2,maxZoom:17}).fitBounds([[42,-141],[72,-52]]);
       map.attributionControl.setPrefix(false);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,referrerPolicy:'strict-origin-when-cross-origin',attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
-      pins.forEach(p=>{const marker=L.marker([p.lat,p.lng],{icon:L.divIcon({className:'forge-map-marker',html:badge(p.flags),iconSize:[48,32],iconAnchor:[24,16]}),title:p.name+' · '+p.label,alt:p.name+' · '+p.label}).addTo(map);marker.bindTooltip(esc(p.name)+' · '+esc(p.label));marker.on('click',()=>detail(p));});
+      pins.forEach(p=>{const marker=L.marker([p.lat,p.lng],{icon:L.divIcon({className:'forge-map-marker',html:`<span class="map-pin-label"><strong>${esc(p.name)}</strong>${p.flags.length?badge(p.flags):''}</span>`,iconSize:[0,0],iconAnchor:[0,0]}),title:p.name+' · '+p.label,alt:p.name+' · '+p.label}).addTo(map);marker.bindTooltip(esc(p.name)+' · '+esc(p.label));marker.on('click',()=>detail(p));});
       map.on('click',e=>{if(editing)place(e.latlng.lat,e.latlng.lng);});
       if(editing)edit();
     }catch(err){error(err.message);}
