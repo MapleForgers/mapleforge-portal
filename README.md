@@ -270,3 +270,7 @@ Imported message text, member records and deployment configuration remain outsid
 Signed-in members can opt in to one shared map pin, choose an approximate position and location label, and edit or remove it. No GPS permission or automatic location lookup is used. Up to three optional country or Canadian provincial flags form one badge. Pins are only returned to signed-in members, and the server only allows members to change their own pin.
 
 Deploy `server/shared.py` alongside the built portal and `public/flags` and `public/vendor/leaflet` assets. Startup creates the `member_locations` table automatically. Back up the member database before deployment. Leaflet 1.9.4 and flag-icons 7.6.0 are vendored with license files. OpenStreetMap supplies map tiles directly to browsers; member pins are supplied by the portal.
+
+## Member details
+
+The native member directory uses the contact form fields, with fictional examples kept separate from real entries. Signed-in MapleForge members may read submitted entries. The server derives ownership from the session and permits only the owner to save or remove their entry. All fields are optional, contact information requires an explicit sharing acknowledgement, and no contact data is copied to Activity. The `member_details` table is created automatically on service startup. Spreadsheet responses are not bundled or imported by this feature.

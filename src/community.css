@@ -4033,3 +4033,16 @@ body .sidebar-bottom .member-account > div .btn { margin:0; padding:4px 0; line-
 .forge-map-cluster span {display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#225c47;color:white;border:2px solid white;box-shadow:0 1px 4px #0003;font:600 16px/1 system-ui,sans-serif;}
 
 #map-members,#map-person {max-height:45vh;overflow-y:auto;}
+.details-heading,.details-card header {display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.details-heading h1,.details-heading p {margin:4px 0;}
+.details-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));gap:16px;}
+.details-card,.details-form {padding:18px;background:var(--card,#fff);border:1px solid var(--line,#ccc);border-radius:8px;margin:12px 0;}
+.details-card h2 {font-size:22px;margin:0;}
+.details-card dl {margin:8px 0;}.details-card dl>div {margin:10px 0;}.details-card dt {font-weight:600;}.details-card dd {margin:3px 0;white-space:pre-wrap;overflow-wrap:anywhere;}
+.details-example {color:#75451c;background:#fff0cf;padding:4px 8px;border-radius:4px;}
+.details-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.details-form {max-width:900px;}.details-form fieldset {border:0;border-top:1px solid var(--line,#ccc);margin:18px 0;padding:12px 0;}.details-form legend {font-weight:700;padding-right:10px;}
+.details-form label,.details-search {display:block;margin:8px 0;font-size:16px;}
+.details-form input:not([type=checkbox]),.details-form textarea,.details-form select,.details-search input {display:block;width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px;margin-top:5px;background:var(--card,#fff);color:var(--ink,#222);border:1px solid var(--line,#bbb);border-radius:4px;}
+.details-form .details-consent {display:flex;align-items:flex-start;gap:10px;}.details-search {max-width:650px;}.details-examples {margin:20px 0;}.details-examples summary {cursor:pointer;font-size:18px;font-weight:600;}
+@media(max-width:650px){.details-fields{grid-template-columns:1fr;}}

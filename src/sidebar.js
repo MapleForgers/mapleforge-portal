@@ -4,7 +4,7 @@
   const groups = [
     ["bookmarks", "rules"],
     ["activity", "ideas", "tasks", "contributions"],
-    ["people", "exchange", "resource"],
+    ["people", "details", "exchange", "resource"],
     ["framework", "governance", "process", "requests"],
     ["map"],
   ];

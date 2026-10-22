@@ -13,7 +13,7 @@ def content(name):
     if not isinstance(value,list):raise ValueError(name+' must contain a JSON array')
     return value
 def encode(value):return json.dumps(value,ensure_ascii=False).replace('</','<\\/')
-modules=['base','idea-discussions','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','forgers-map','sidebar','version','idea-board-summary','locale','timezone']
+modules=['base','idea-discussions','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','forgers-map','member-details','sidebar','version','idea-board-summary','locale','timezone']
 seeds='const governanceSeeds='+encode(content('governance'))+';\nconst peopleSeeds='+encode(content('people'))+';\n'
 commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
 release={'commit':commit,'short':commit[:7]}

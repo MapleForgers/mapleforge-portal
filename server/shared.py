@@ -12,6 +12,7 @@ def init(c):
     CREATE TABLE IF NOT EXISTS activity(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,type TEXT NOT NULL,action TEXT NOT NULL,detail TEXT NOT NULL,created REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS member_locations(uid TEXT PRIMARY KEY,lat REAL NOT NULL,lng REAL NOT NULL,label TEXT NOT NULL,flags TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS pending_map_activity(uid TEXT PRIMARY KEY,action TEXT NOT NULL,due REAL NOT NULL);
+    CREATE TABLE IF NOT EXISTS member_details(uid TEXT PRIMARY KEY,payload TEXT NOT NULL,updated REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
 def now():return datetime.now(timezone.utc).isoformat()
@@ -64,9 +65,29 @@ def snapshot(c,user,config):
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
         activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
-    return {'records':records,'relations':relations,'comments':comments,'activity':activity,'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
+    return {'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':[dict(json.loads(r['payload']),uid=r['uid'],discordName=r['username'],name=r['name'],updated=r['updated']) for r in c.execute('SELECT member_details.*,users.username,users.name FROM member_details JOIN users ON users.id=uid')] if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
+    if op=='member_details':
+        if data.get('remove') is True:
+            c.execute('DELETE FROM member_details WHERE uid=?',(uid,));return {}
+        if data.get('consent') is not True:raise Problem(400,'Confirm sharing your details with signed-in members.')
+        fields=data.get('fields')
+        if not isinstance(fields,dict):raise Problem(400,'Invalid member details.')
+        limits={'firstName':80,'lastName':80,'province':80,'city':120,'email':254,'linkedin':300,'background':4000,'skills':2000,'interests':2000}
+        payload={k:text(fields,k,limit) for k,limit in limits.items()}
+        if payload['province'] not in ('','Alberta','British Columbia','Manitoba','New Brunswick','Newfoundland and Labrador','Nova Scotia','Northwest Territories','Nunavut','Ontario','Prince Edward Island','Québec','Saskatchewan','Yukon','Outside Canada'):raise Problem(400,'Choose a province or territory.')
+        if payload['email'] and ('@' not in payload['email'] or any(ch.isspace() for ch in payload['email'])):raise Problem(400,'Enter a valid email address.')
+        if payload['linkedin']:
+            from urllib.parse import urlparse
+            url=urlparse(payload['linkedin'])
+            if url.scheme!='https' or url.hostname not in ('linkedin.com','www.linkedin.com') or url.username or url.password:raise Problem(400,'Use an https://www.linkedin.com/ link.')
+        hours=fields.get('hours','')
+        if hours is None or hours=='':payload['hours']=None
+        elif type(hours) not in (float,int) or not math.isfinite(hours) or not 0<=hours<=168:raise Problem(400,'Weekly availability must be between 0 and 168 hours.')
+        else:payload['hours']=hours
+        c.execute('INSERT INTO member_details VALUES(?,?,?) ON CONFLICT(uid) DO UPDATE SET payload=excluded.payload,updated=excluded.updated',(uid,json.dumps(payload),time.time()))
+        return {}
     if op=='map_pin':
         flush_map_activity(c)
         previous=c.execute('SELECT * FROM member_locations WHERE uid=?',(uid,)).fetchone()

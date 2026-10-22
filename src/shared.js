@@ -722,7 +722,7 @@ if (window.MF) {
         const editing = !!paneTabs[activeSection]?.querySelector(
           "form[data-dirty=true]",
         );
-        if (!editing && !M.mapIsEditing?.()) {
+        if (!editing && !M.mapIsEditing?.() && !M.detailsIsEditing?.()) {
           render();
           if ($("#detail-dialog").open) renderDetail();
           const live = Object.entries(paneTabs).find(
