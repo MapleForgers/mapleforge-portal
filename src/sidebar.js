@@ -32,21 +32,22 @@ document.querySelectorAll(".sidebar .brand").forEach((brand) => {
 {
   const settings = () => document.getElementById('sidebar-settings');
   const close = () => { if (settings()) settings().open = false; };
-  document.addEventListener('toggle', event => {
-    if (event.target.id !== 'sidebar-settings' || !event.target.open) return;
-    const box = event.target.querySelector('summary').getBoundingClientRect();
-    const panel = event.target.querySelector('.settings-fields');
-    const width = Math.min(300, window.innerWidth - 24);
+  window.positionAppearance = () => {
+    const current = settings();
+    if (!current?.open) return;
+    const box = current.querySelector('summary').getBoundingClientRect();
+    const panel = current.querySelector('.settings-fields');
+    const width = Math.min(360, window.innerWidth - 24);
     panel.style.width = width + 'px';
     panel.style.left = Math.max(12, Math.min(box.left, window.innerWidth - width - 12)) + 'px';
-    panel.style.top = Math.max(12, box.top - panel.getBoundingClientRect().height - 8) + 'px';
+    panel.style.top = Math.max(12, Math.min(box.top - panel.getBoundingClientRect().height - 8, window.innerHeight - panel.getBoundingClientRect().height - 12)) + 'px';
+  };
+  document.addEventListener('toggle', event => {
+    if (event.target.id === 'sidebar-settings') window.positionAppearance();
   }, true);
   document.addEventListener('click', event => {
     if (settings()?.open && !settings().contains(event.target)) close();
   });
-  document.addEventListener('change', event => {
-    if (event.target.closest('#sidebar-settings')) close();
-  }, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && settings()?.open) {
       close(); settings().querySelector('summary').focus();

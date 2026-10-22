@@ -57,7 +57,7 @@ def mutate(c,user,data,config):
     if op=='preferences':
         p=data.get('preferences');valid={}
         if not isinstance(p,dict):raise Problem(400,'Invalid preferences.')
-        for k,choices in {'theme':['forest','maple','night','plain'],'layout':['feed','cards','list','board'],'density':['compact','balanced','roomy'],'fontScale':[100,115,130,150],'sort':['original','votes','newest','alphabetical','author','comments']}.items():
+        for k,choices in {'theme':['forest','maple','night','plain'],'layout':['feed','cards','compact','lanes','list','board'],'menuSpacing':['compact','comfortable','spacious'],'menuStyle':['simple','soft','outlined'],'density':['compact','balanced','roomy'],'fontScale':[100,115,130,150],'sort':['original','votes','newest','alphabetical','author','comments']}.items():
             if k in p:
                 if p[k] not in choices:raise Problem(400,'Invalid preference.')
                 valid[k]=p[k]

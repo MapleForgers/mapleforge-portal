@@ -1,5 +1,6 @@
 {
   const french = {
+"Colour theme":"Thème de couleurs", "Idea board layout":"Disposition du tableau d’idées", "Content spacing":"Espacement du contenu", "Left menu spacing":"Espacement du menu de gauche", "Left menu style":"Style du menu de gauche", "Compact":"Compact", "Comfortable":"Confortable", "Spacious":"Spacieux", "Simple":"Simple", "Soft blocks":"Blocs arrondis", "Outlined":"Contours", "Changes apply instantly. Only your view changes.":"Les changements sont immédiats et ne modifient que votre affichage.",
     Bookmarks: "Favoris",
     "Community Rules": "Règles de la communauté",
     Activity: "Activité",
@@ -926,6 +927,7 @@
         });
       if (document.querySelector("title")?.firstChild)
         update(document.querySelector("title").firstChild);
+      window.positionAppearance?.();
       observer.observe(document.body, {
         childList: true,
         subtree: true,

@@ -124,78 +124,35 @@ function addPreferences() {
     $(".sidebar-bottom").prepend(settings);
   }
   const opened = settings.open;
-  settings.innerHTML = `<summary>Appearance</summary><div class="settings-fields"><label>Theme<select id="theme-choice" aria-label="Choose theme">${[
-    ["forest", "Forest"],
-    ["maple", "Cream"],
-    ["night", "Night"],
-    ["plain", "Plain"],
-  ]
-    .map(
-      ([v, l]) =>
-        `<option value="${v}" ${state.preferences.theme === v ? "selected" : ""}>${l}</option>`,
-    )
-    .join(
-      "",
-    )}</select></label><label>Layout<select id="layout-choice" aria-label="Choose idea layout">${[
-    ["feed", "Feed"],
-    ["cards", "Cards"],
-    ["compact", "List"],
-    ["lanes", "Stages"],
-  ]
-    .map(
-      ([v, l]) =>
-        `<option value="${v}" ${state.preferences.layout === v ? "selected" : ""}>${l}</option>`,
-    )
-    .join(
-      "",
-    )}</select></label><label>Spacing<select id="density-choice" aria-label="Choose spacing"><option value="compact" ${(state.preferences.density || "compact") === "compact" ? "selected" : ""}>Tight</option><option value="balanced" ${state.preferences.density === "balanced" ? "selected" : ""}>Balanced</option><option value="roomy" ${state.preferences.density === "roomy" ? "selected" : ""}>Airy</option></select></label><label class="font-setting">Text size<select id="font-choice" aria-label="Choose text size">${[
-    [100, "100%"],
-    [115, "115%"],
-    [130, "130%"],
-    [150, "150%"],
-  ]
-    .map(
-      ([v, l]) =>
-        `<option value="${v}" ${(state.preferences.fontScale || 100) === v ? "selected" : ""}>${l}</option>`,
-    )
-    .join(
-      "",
-    )}</select></label><button class="pref-hint" id="personal-options-note">Your view, your choice ↗</button></div>`;
+  document.body.dataset.menuSpacing = state.preferences.menuSpacing || "compact";
+  document.body.dataset.menuStyle = state.preferences.menuStyle || "soft";
+  const group = (key, title, choices, fallback) => `<fieldset class="appearance-group"><legend>${title}</legend><div class="appearance-choices">${choices.map(([value,label]) => `<label><input type="radio" name="appearance-${key}" value="${value}" data-preference="${key}" ${String(state.preferences[key] ?? fallback) === String(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div></fieldset>`;
+  settings.innerHTML = `<summary>Appearance</summary><div class="settings-fields"><div class="appearance-panel-head"><strong>Appearance</strong><button type="button" class="appearance-done">Done</button></div><p class="appearance-help">Changes apply instantly. Only your view changes.</p>${
+    group("theme", "Colour theme", [["forest","Forest"],["maple","Cream"],["night","Night"],["plain","Plain"]], "forest") +
+    group("layout", "Idea board layout", [["feed","Feed"],["cards","Cards"],["compact","List"],["lanes","Stages"]], "feed") +
+    group("density", "Content spacing", [["compact","Tight"],["balanced","Balanced"],["roomy","Airy"]], "compact") +
+    group("fontScale", "Text size", [[100,"100%"],[115,"115%"],[130,"130%"],[150,"150%"]], 100) +
+    group("menuSpacing", "Left menu spacing", [["compact","Compact"],["comfortable","Comfortable"],["spacious","Spacious"]], "compact") +
+    group("menuStyle", "Left menu style", [["simple","Simple"],["soft","Soft blocks"],["outlined","Outlined"]], "soft")
+  }</div>`;
   settings.open = opened;
-  settings.querySelectorAll("[data-theme-pick]").forEach(
-    (b) =>
-      (b.onclick = () => {
-        state.preferences.theme = b.dataset.themePick;
-        persist();
-        render();
-      }),
-  );
+  settings.querySelector('.appearance-done').onclick = () => { settings.open = false; settings.querySelector('summary').focus(); };
+  settings.querySelectorAll('[data-preference]').forEach(input => {
+    input.onchange = () => {
+      const key = input.dataset.preference;
+      const value = input.value;
+      state.preferences[key] = key === 'fontScale' ? Number(value) : value;
+      persist();
+      render();
+      window.positionAppearance?.();
+      document.querySelector(`#sidebar-settings input[data-preference="${key}"][value="${value}"]`)?.focus({preventScroll:true});
+    };
+  });
   if (view === "ideas")
     $("#main").insertAdjacentHTML(
       "afterbegin",
       `<div class="community-banner"><div><h2>Born in the comments. Built by the community.</h2><p>Less doomscroll. More do-stuff. Respect to our Reddit roots.</p></div>${canadaArt}</div>`,
     );
-  $("#font-choice").onchange = (e) => {
-    state.preferences.fontScale = Number(e.target.value);
-    persist();
-    render();
-  };
-  $("#personal-options-note").onclick = showPersonalNote;
-  $("#theme-choice").onchange = (e) => {
-    state.preferences.theme = e.target.value;
-    persist();
-    render();
-  };
-  $("#layout-choice").onchange = (e) => {
-    state.preferences.layout = e.target.value;
-    persist();
-    render();
-  };
-  $("#density-choice").onchange = (e) => {
-    state.preferences.density = e.target.value;
-    persist();
-    render();
-  };
   $$("[data-rail-request]").forEach(
     (b) => (b.onclick = () => openRequestForm()),
   );
