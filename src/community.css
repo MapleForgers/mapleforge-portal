@@ -3401,7 +3401,7 @@ summary:focus-visible {
 }
 
 /* Focused framework conversations, with accessible compact phase controls. */
-.framework-picker .selected {
+.framework-page .framework-picker button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--paper);
   font-weight: 700;
