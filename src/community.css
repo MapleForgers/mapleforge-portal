@@ -3858,3 +3858,31 @@ body .sidebar .nav .personal-nav-row > [data-view] { flex:1; min-width:0; width:
 .nav-drop-active { outline:1px dashed currentColor; outline-offset:2px; border-radius:5px; }
 .nav-dragging { opacity:.45; }
 @media(max-width:600px) { body .section-tabs .portal-version { max-width:100px; font-size:10px; padding:3px; } }
+
+/* Fit the visible wordmark, excluding the transparent padding in its source. */
+body .sidebar .brand {
+  display:block;
+  width:calc(100% + 16px);
+  margin:0 -8px 10px;
+  padding:0;
+  aspect-ratio:2029 / 531;
+  overflow:hidden;
+  flex-shrink:0;
+}
+body .sidebar .brand .brand-wordmark {
+  position:absolute;
+  width:106.949%;
+  max-width:none;
+  height:136.535%;
+  left:-5.619%;
+  top:-22.976%;
+  border-radius:0;
+}
+body[data-theme="forest"] .sidebar .brand::after,
+body[data-theme="night"] .sidebar .brand::after {
+  inset:auto;
+  left:-5.619%;
+  top:-22.976%;
+  width:106.949%;
+  height:136.535%;
+}
