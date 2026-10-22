@@ -3532,27 +3532,22 @@ body #cards .save.bookmark-active {
   fill: currentColor;
 }
 body .nav .bookmarks-nav {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  background: #f5ce75;
-  color: #203429;
-  font-weight: 800;
-  border: 1px solid #ffd98e;
-  margin-bottom: 12px;
-}
-.nav .bookmarks-nav svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
+  font-weight: 650;
+  border: 1px solid rgba(230, 199, 120, .35);
+  margin-bottom: 0;
 }
 .bookmark-count {
   margin-left: auto;
-  background: #203429;
-  color: white;
-  border-radius: 12px;
-  padding: 0 7px;
+  color: inherit;
+  opacity: .8;
+  font-size: .85em;
 }
+.sidebar .nav .nav-group-start {
+  margin-top: 9px;
+  border-top: 1px solid rgba(128, 128, 128, .25);
+  border-radius: 0;
+}
+.sidebar .nav svg, .sidebar .nav [data-icon] { display: none; }
 .board-bookmark-controls {
   margin: 7px 0;
 }
