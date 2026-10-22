@@ -20,7 +20,6 @@ if (window.MF) {
     "Resource sharing": "Resources",
     People: "People",
     Comments: "Comments",
-    Boards: "Boards",
     Activity: "Activity",
     Framework: "Framework",
   };
@@ -37,7 +36,7 @@ if (window.MF) {
   document.querySelector(".nav").prepend(nav);
   const saved = () =>
     (M.bookmarkData?.relations || []).filter(
-      (r) => r.kind === "saved" && r.uid === M.account?.id,
+      (r) => r.kind === "saved" && r.uid === M.account?.id && !r.target.startsWith("Boards:"),
     );
   const picks = () =>
     (M.bookmarkData?.relations || []).filter((r) => r.kind === "pick");
@@ -280,24 +279,6 @@ if (window.MF) {
     const count = String(saved().length);
     if (nav.querySelector(".bookmark-count").textContent !== count)
       nav.querySelector(".bookmark-count").textContent = count;
-    const head = document.querySelector("#main h1");
-    if (
-      head &&
-      !["bookmarks", "picks", "contributions", "framework"].includes(view) &&
-      Object.values(sections)
-        .concat(["activity", "process", "rules"])
-        .includes(view)
-    ) {
-      let controls = head.parentElement.querySelector(
-        ".board-bookmark-controls",
-      );
-      if (!controls) {
-        controls = document.createElement("div");
-        controls.className = "board-bookmark-controls filter-chips";
-        head.after(controls);
-      }
-      addControls(controls, "Boards:" + view, sectionLabels[view]);
-    }
     document.querySelectorAll("#cards [data-save]").forEach((b) => {
       const active = state.saved.includes(b.dataset.save);
       b.classList.toggle("bookmark-active", active);

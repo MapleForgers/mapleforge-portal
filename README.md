@@ -195,7 +195,7 @@ Section navigation writes `?section=<section-id>` into browser history and updat
 
 ### Saved collections
 
-Bookmarks is the first sidebar link and shows a private saved-item count. Members can save items, boards, comments and activity entries. Green filled controls indicate saved items. Private bookmarks are returned only to their owner.
+Bookmarks is the first sidebar link and shows a private saved-item count. Members can save individual items, comments and activity entries. Sidebar destinations do not have whole-page Save controls. Green filled controls indicate saved items. Private bookmarks are returned only to their owner.
 
 ### Language and branding
 
