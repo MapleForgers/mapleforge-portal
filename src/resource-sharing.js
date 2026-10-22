@@ -117,7 +117,7 @@ if (window.MF) {
       rows
         .map(
           (r) =>
-            `<article class="request-row"><div class="feature-row-main"><span class="tag">${r.type === "Offer" ? "Available to share" : "Resource wanted"}</span><h3><button class="title-btn" data-resource-open="${esc(r.id)}">${esc(r.title)}</button></h3><p>${esc(r.body.slice(0, 180))}${r.body.length > 180 ? "…" : ""}</p><div class="request-meta">${memberName(r.author)}<span>${esc(r.category)}</span><span>${esc(r.availability || "Timing to discuss")}</span><span>${esc(r.terms)}</span></div></div><span class="tag">${esc(r.status)}</span></article>`,
+            `<article class="request-row"><div class="feature-row-main"><span class="tag">${r.type === "Offer" ? "Available to share" : "Resource wanted"}</span><h3><button class="title-btn" data-resource-open="${esc(r.id)}">${esc(r.title)}</button></h3><p>${esc(r.body.slice(0, 180))}${r.body.length > 180 ? "…" : ""}</p><div class="request-meta">${memberName(r.author)}<span>${esc(r.category)}</span><span>${esc(r.availability || "Timing to discuss")}</span><span>${esc(r.terms)}</span><button class="btn link" data-resource-open="${esc(r.id)}">Ask a question / comment →</button></div></div><span class="tag">${esc(r.status)}</span></article>`,
         )
         .join("") ||
       '<div class="empty">No matching listings yet. Share a resource or ask the community for help.</div>';

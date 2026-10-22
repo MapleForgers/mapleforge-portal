@@ -87,6 +87,7 @@ if (window.MF) {
       .map((r) => r.target.slice(section.length + 1));
   M.hydrate = async () => {
     sharedData = await M.api("/api/shared");
+    M.bookmarkData = sharedData;
     const records = sharedData.records;
     M.framework = records.find(
       (r) => r.board === "Framework" && r.id === "project-framework-v01",

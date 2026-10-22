@@ -13,6 +13,7 @@ Working shared features:
 - Shared comments on ideas, features, tasks, governance, skills and resources.
 - Member profiles, skills, services and portal display names.
 - Available skills and resources, offers and requests, availability and status.
+- A private Bookmarks collection for ideas, skills, resources, people, tasks, features, governance and individual comments.
 - A skill category index with counts, grouped listings and filtering.
 - A separate Project Framework discussion draft with seven selectable phases, point-specific feedback prompts and saved phase conversations.
 - Community Rules with the dated Discord source and reminders beside discussions.

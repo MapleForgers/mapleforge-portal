@@ -3486,3 +3486,36 @@ summary:focus-visible {
   margin-top: 5px;
   margin-bottom: 9px;
 }
+
+.bookmark-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  margin: 3px;
+}
+.bookmark-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+.bookmark-toggle[aria-pressed="true"] {
+  border-color: currentColor;
+  font-weight: 700;
+}
+.bookmark-results {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.bookmark-result {
+  margin: 0;
+  padding: 14px;
+}
+.bookmark-result h3 {
+  margin: 7px 0;
+}
+#bookmark-search {
+  width: min(100%, 650px);
+  padding: 10px;
+  margin-top: 10px;
+}

@@ -62,6 +62,23 @@ def mutate(c,user,data,config):
                 if p[k] not in choices:raise Problem(400,'Invalid preference.')
                 valid[k]=p[k]
         c.execute('INSERT INTO preferences VALUES(?,?) ON CONFLICT(uid) DO UPDATE SET payload=excluded.payload',(uid,json.dumps(valid)));return {}
+    if op=='bookmark':
+        enabled=data.get('enabled')
+        if type(enabled) is not bool or kind not in KINDS|{'Comments','People'} or not id:raise Problem(400,'Invalid bookmark.')
+        payload={}
+        if enabled:
+            if kind=='Comments':
+                comment=c.execute('SELECT target FROM comments WHERE id=?',(id,)).fetchone()
+                if not comment:raise Problem(404,'Comment no longer available.')
+                parent_kind,_,parent_id=comment['target'].partition(':');record(c,parent_kind,parent_id)
+            elif kind=='People':
+                # Imported profile IDs are external content. Store only a personal display label.
+                payload={'title':text(data,'title',160,True)}
+            else:record(c,kind,id)
+            payload['savedAt']=time.time()
+            c.execute('INSERT INTO relations VALUES(?,?,?,?) ON CONFLICT(uid,kind,target) DO NOTHING',(uid,'saved',kind+':'+id,json.dumps(payload)))
+        else:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,'saved',kind+':'+id))
+        return {}
     if kind not in KINDS:raise Problem(400,'Unknown board.')
     if op=='save':
         if kind in ('Ideas','Framework'):raise Problem(400,'Use the corresponding idea or framework page.')

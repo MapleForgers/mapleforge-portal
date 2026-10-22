@@ -88,6 +88,11 @@
     ],
   ];
   let selectedPhase = -1;
+  window.openFrameworkDiscussion = function (id) {
+    const phase = id.match(/-phase-([1-7])$/);
+    selectedPhase = phase ? Number(phase[1]) - 1 : -1;
+    switchSection("framework");
+  };
   const questions = [
     "What would make submitting an idea easy? How long should submissions stay open?",
     "How should rankings and ties work? Is 48 hours enough for everyone to participate?",
