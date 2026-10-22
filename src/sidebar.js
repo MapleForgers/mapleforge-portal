@@ -3,7 +3,7 @@
   const navigation = document.querySelector(".nav");
   const groups = [
     ["bookmarks", "rules"],
-    ["activity", "ideas", "tasks", "contributions", "picks"],
+    ["activity", "ideas", "tasks", "contributions"],
     ["people", "exchange", "resource"],
     ["framework", "governance", "process", "requests"],
   ];

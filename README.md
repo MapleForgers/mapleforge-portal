@@ -195,4 +195,4 @@ Section navigation writes `?section=<section-id>` into browser history and updat
 
 ### Saved collections
 
-Bookmarks is the first sidebar link and shows a private saved-item count. Members can save items, boards, comments and activity entries. Green filled controls indicate saved items. Community Picks is a separate shared collection where signed-in members can recommend items and remove their own recommendations. Private bookmarks are returned only to their owner.
+Bookmarks is the first sidebar link and shows a private saved-item count. Members can save items, boards, comments and activity entries. Green filled controls indicate saved items. Private bookmarks are returned only to their owner.

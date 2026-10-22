@@ -35,12 +35,6 @@ if (window.MF) {
     '<span>Bookmarks</span><span class="bookmark-count">0</span>';
   nav.onclick = () => switchSection("bookmarks");
   document.querySelector(".nav").prepend(nav);
-  sectionLabels.picks = "Community Picks";
-  const picksNav = document.createElement("button");
-  picksNav.dataset.view = "picks";
-  picksNav.textContent = "Community Picks";
-  picksNav.onclick = () => switchSection("picks");
-  document.querySelector('.nav [data-view="contributions"]').after(picksNav);
   const saved = () =>
     (M.bookmarkData?.relations || []).filter(
       (r) => r.kind === "saved" && r.uid === M.account?.id,
@@ -122,7 +116,7 @@ if (window.MF) {
         enabled: !isSaved(target, shared),
       });
       await M.refresh();
-      if (["bookmarks", "picks"].includes(view)) render();
+      if (view === "bookmarks") render();
       else decorate();
       toast(shared ? "Updated Community Picks" : "Updated your Bookmarks");
     } catch (e) {
@@ -176,7 +170,7 @@ if (window.MF) {
   }
   function addControls(host, target, title) {
     addButton(host, target, title);
-    addButton(host, target, title, true);
+
   }
   function openTarget(target) {
     const [kind, id] = split(target),
@@ -279,7 +273,7 @@ if (window.MF) {
   const previous = render;
   render = function () {
     previous();
-    if (["bookmarks", "picks"].includes(view)) renderBookmarks();
+    if (view === "bookmarks") renderBookmarks();
     decorate();
   };
   function decorate() {
@@ -310,7 +304,7 @@ if (window.MF) {
       b.setAttribute("aria-pressed", String(active));
       const title = find(b.dataset.save)?.title || "Idea";
       let host = b.closest(".card")?.querySelector(".card-footer");
-      if (host) addButton(host, "Ideas:" + b.dataset.save, title, true);
+
     });
     const maps = [
       ["[data-exchange-open]", "Skills exchange"],
