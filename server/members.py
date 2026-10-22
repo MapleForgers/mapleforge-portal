@@ -5,11 +5,24 @@ from urllib.parse import urlencode, urlparse, parse_qs
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from pathlib import Path
-import os, json, sqlite3, secrets, hashlib, time
+import os, json, sqlite3, secrets, hashlib, time, threading, unicodedata
 import shared
 
 ORIGIN='https://maple-forge.ca'
 CONFIG=json.loads(Path(os.environ.get('MEMBER_CONFIG','/etc/mapleforge/discord.json')).read_text())
+# OAuth access tokens stay in process memory only. Restart requires fresh sign-in.
+MEMBERSHIP = {}
+MEMBERSHIP_LOCK = threading.Lock()
+MEMBERSHIP_TTL = 300
+
+def name_key(name):
+    return ' '.join(unicodedata.normalize('NFKC', name).casefold().split())
+def valid_name(c, name, uid):
+    key=name_key(name)
+    if not key or any(unicodedata.category(ch).startswith('C') for ch in name):return False
+    if key in {'admin','administrator','moderator','staff','system','mapleforge','mapleforge admin'}:return False
+    return not any(key in (name_key(row['name']),name_key(row['username'])) for row in c.execute('SELECT name,username FROM users WHERE id<>?',(uid,)))
+
 DB=os.environ.get('MEMBER_DB','/var/lib/mapleforge/members.sqlite3')
 class Connection(sqlite3.Connection):
     def __exit__(self,*args):
@@ -50,7 +63,24 @@ class Handler(BaseHTTPRequestHandler):
         try:return SimpleCookie(self.headers.get('Cookie',''))[key].value
         except Exception:return ''
     def session(self):
-        with db() as c:return c.execute('SELECT sessions.*,users.username,users.name,users.profile FROM sessions JOIN users ON users.id=sessions.uid WHERE token=? AND expires>?',(digest(self.cookie('mapleforge_member')),time.time())).fetchone()
+        key=digest(self.cookie('mapleforge_member'))
+        with db() as c:user=c.execute('SELECT sessions.*,users.username,users.name,users.profile FROM sessions JOIN users ON users.id=sessions.uid WHERE token=? AND expires>?',(key,time.time())).fetchone()
+        if not user:return None
+        with MEMBERSHIP_LOCK:
+            proof=MEMBERSHIP.get(key)
+            if proof and proof['expires']>time.time():
+                if time.time()-proof['checked']<MEMBERSHIP_TTL:return user
+                try:
+                    member=discord('v10/users/@me/guilds/'+CONFIG['guild_id']+'/member',proof['access'])
+                    if not member.get('pending'):
+                        proof['checked']=time.time()
+                        return user
+                except HTTPError as e:
+                    if e.code not in (401,403,404):raise
+                # Network failures propagate and deny access; they do not renew membership.
+            MEMBERSHIP.pop(key,None)
+            with db() as c:c.execute('DELETE FROM sessions WHERE token=?',(key,))
+        return None
     def do_GET(self):
         try:self.get()
         except (HTTPError,TimeoutError,OSError,ValueError,KeyError):self.send(502,{'error':'Discord could not complete sign-in. Please try again.'})
@@ -78,15 +108,23 @@ class Handler(BaseHTTPRequestHandler):
                 if e.code in (403,404):return self.send(403,{'error':'Sign-in is for MapleForge Discord members. Join the community, then try again.'})
                 raise
             if member.get('pending'):return self.send(403,{'error':'Please complete MapleForge membership screening in Discord first.'})
-            # Access and refresh tokens are not retained. A fresh Discord check is required after 24 hours.
+            # Retain only the access token in memory for periodic membership checks; never the refresh token.
             name=member.get('nick') or u.get('global_name') or u['username'];token=secrets.token_urlsafe(32);csrf=secrets.token_urlsafe(32)
             with db() as c:
+                c.execute('BEGIN IMMEDIATE')
+                if not valid_name(c,name,u['id']):name=u['username']
+                if not valid_name(c,name,u['id']):name='Member '+u['id']
                 c.execute('INSERT INTO users(id,username,name) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET username=excluded.username',(u['id'],u['username'],name))
                 c.execute('DELETE FROM sessions WHERE expires<?',(time.time(),))
                 c.execute('INSERT INTO sessions VALUES(?,?,?,?)',(digest(token),u['id'],csrf,time.time()+86400))
+            with MEMBERSHIP_LOCK:
+                for key in list(MEMBERSHIP):
+                    if MEMBERSHIP[key]['expires']<=time.time():MEMBERSHIP.pop(key,None)
+                MEMBERSHIP[digest(token)]={'access':access,'checked':time.time(),'expires':time.time()+min(86400,int(tokens.get('expires_in',86400)))}
             return self.send(303,headers={'Location':'/portal1/','Set-Cookie':'mapleforge_member='+token+'; Path=/; Max-Age=86400; Secure; HttpOnly; SameSite=Lax'})
         user=self.session()
         if path=='/api/me':return self.send(200,{'user':{'id':user['uid'],'username':user['username'],'name':user['name'],'profile':json.loads(user['profile'])} if user else None,'csrf':user['csrf'] if user else None})
+        if path in ('/api/shared','/api/community','/api/comments') and not user:return self.send(401,{'error':'Sign in with Discord to view member content.'})
         if path=='/api/shared':
             with db() as c:return self.send(200,shared.snapshot(c,user,CONFIG))
         if path=='/api/community':
@@ -101,7 +139,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200,{'comments':rows})
         return self.send(404,{'error':'Not found'})
     def do_POST(self):
-        user=self.session()
+        try:user=self.session()
+        except (HTTPError,TimeoutError,OSError,ValueError,KeyError):return self.send(503,{'error':'Membership could not be verified. Please try again shortly.'})
         if not user:return self.send(401,{'error':'Sign in with Discord to contribute.'})
         if self.headers.get('Origin')!=ORIGIN or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),user['csrf']):return self.send(403,{'error':'Refresh the portal and try again.'})
         try:
@@ -120,9 +159,11 @@ class Handler(BaseHTTPRequestHandler):
                     c.commit()
                     return self.send(200,{'ok':True,**result})
                 if path=='/api/logout':
+                    MEMBERSHIP.pop(user['token'],None)
                     c.execute('DELETE FROM sessions WHERE token=?',(user['token'],));return self.send(200,{'ok':True}, {'Set-Cookie':'mapleforge_member=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax'})
                 if path=='/api/profile':
                     name=field('name',80);profile=json.loads(user['profile'])
+                    if not valid_name(c,name,user['uid']):return self.send(409,{'error':'Choose a different display name. This name is reserved or already used.'})
                     for key,limit in [('category',80),('summary',2000),('services',2000)]:
                         if key in data:profile[key]=field(key,limit,False)
                     c.execute('UPDATE users SET name=?,profile=? WHERE id=?',(name,json.dumps(profile),user['uid']))

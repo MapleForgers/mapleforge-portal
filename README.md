@@ -204,3 +204,25 @@ The sidebar offers English and Canadian French next to Appearance. An explicit l
 The approved red-leaf wordmark is in `public/mapleforge-wordmark.png`. The Project Framework header is compact and has no whole-page bookmark control.
 
 Project Debate is currently withdrawn from the portal. Older `?section=debate` links return to Project Framework. The proposal can be recovered from Git history.
+
+## Security controls
+
+The shared preview password is a temporary entry gate, not member authentication. Its salted PBKDF2 hash is stored outside this repository. Preview cookies are bound to the configured password hash, so changing the hash or cookie key invalidates existing preview cookies after service restart.
+
+Install `config/preview-rate-limit.conf` in nginx's HTTP context and add the documented directives to `/preview-access`: six POST attempts per minute per IP, with a burst allowance of five, returning HTTP 429. The gate also caps total hash attempts at 20 per minute and permits at most two concurrent hashes. GET requests do not consume the password-attempt quota.
+
+`/api/shared`, `/api/community`, and `/api/comments` require a valid Discord member session. Signed-out clients skip those reads. The original curated preview content remains visible behind the preview gate.
+
+Discord membership is checked on the first request after a five-minute cache expires. Membership removal, pending screening, invalid access tokens or token expiry revoke the session. Transient verification failures deny the request without renewing membership. Access tokens exist only in process memory, never in the database or logs; refresh tokens are not retained. Restarting the member service therefore requires fresh Discord sign-in. Existing 24-hour session expiry remains an upper bound. For immediate manual revocation, an administrator can delete that member's session rows from the protected database.
+
+Display-name changes reject names already used as another member's display name or username, using Unicode normalization and case folding. Reserved administrative names and invisible control characters are rejected. This reduces impersonation but does not detect every visual lookalike. Existing stored names are not silently rewritten.
+
+Idea source/reference links allow only absolute HTTPS URLs without embedded credentials.
+
+Run the isolated regression checks with `python3 -m unittest discover -s tests`. Tests use temporary configuration, synthetic users and mocked Discord responses.
+
+### Running version
+
+The bottom-left version links to the exact source commit used by the build. Deploy `portal1/version.json` alongside the generated HTML. Open pages check that manifest on focus and every five minutes and offer a manual reload when a different commit is live. Build releases from a clean committed tree so the label matches GitHub.
+
+Link validation tests: `node tests/test_links.cjs`.

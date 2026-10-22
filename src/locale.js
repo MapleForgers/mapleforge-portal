@@ -1,5 +1,6 @@
 {
   const french = {
+"Update available · Reload":"Mise à jour disponible · Recharger", "View this version on GitHub":"Voir cette version sur GitHub",
 "Project Debate":"Débat de projet", "Proposal for discussion":"Proposition à discuter", "Inside MyDebate":"Le protocole MyDebate", "Framework + MyDebate":"Cadre + MyDebate", "Download JPEG":"Télécharger le JPEG", "Fit":"Ajuster", "Read the process in text":"Lire le processus en texte",
 "People debate. People decide. AI moderates.":"Les membres débattent et décident. L’IA modère.",
 "Every point stays in one shared record until it has an explicit outcome or an agreed next step.":"Chaque point reste dans un dossier commun jusqu’à une conclusion explicite ou une prochaine étape convenue.",

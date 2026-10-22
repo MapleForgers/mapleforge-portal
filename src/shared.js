@@ -86,7 +86,7 @@ if (window.MF) {
       )
       .map((r) => r.target.slice(section.length + 1));
   M.hydrate = async () => {
-    sharedData = await M.api("/api/shared");
+    sharedData = M.account ? await M.api("/api/shared") : { records: [], relations: [], comments: [], activity: [] };
     M.bookmarkData = sharedData;
     const records = sharedData.records;
     M.framework = records.find(

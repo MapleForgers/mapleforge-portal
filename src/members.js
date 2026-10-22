@@ -39,7 +39,7 @@ if (location.hostname === "maple-forge.ca") {
     let me = await api("/api/me");
     account = me.user;
     csrf = me.csrf;
-    community = await api("/api/community");
+    community = account ? await api("/api/community") : { posts: [], profiles: [] };
     remoteIdeas = community.posts.map((p) => ({
       ...p.details,
       id: p.id,
@@ -135,6 +135,7 @@ if (location.hostname === "maple-forge.ca") {
     );
   }
   async function thread(target, host) {
+    if (!account) { host.innerHTML = '<p class="muted">Sign in with Discord to view member comments.</p>'; return; }
     const commentLabel = target.startsWith("Ideas:")
       ? "Ask a question or leave a comment"
       : "Add a comment";

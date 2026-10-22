@@ -3,10 +3,21 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http.cookies import SimpleCookie
 from urllib.parse import parse_qs
 from pathlib import Path
-import hashlib,hmac,json,os,time
+import hashlib,hmac,json,os,time,threading
 
 CONFIG=json.loads(Path(os.environ.get('GATE_CONFIG','/etc/mapleforge/gate.json')).read_text())
-KEY=bytes.fromhex(CONFIG['cookie_key'])
+# Password changes automatically invalidate previously issued preview cookies.
+KEY=hmac.new(bytes.fromhex(CONFIG['cookie_key']),CONFIG['password_hash'].encode(),hashlib.sha256).digest()
+ATTEMPT_LOCK=threading.Lock()
+ATTEMPTS=[]
+HASH_SLOTS=threading.BoundedSemaphore(2)
+def permit_attempt():
+    with ATTEMPT_LOCK:
+        now=time.monotonic()
+        ATTEMPTS[:]=[t for t in ATTEMPTS if now-t<60]
+        if len(ATTEMPTS)>=20:return False
+        ATTEMPTS.append(now)
+        return True
 TTL=30*24*60*60
 
 def token(expiry):
@@ -47,9 +58,13 @@ class Handler(BaseHTTPRequestHandler):
         try:length=int(self.headers.get('Content-Length','0'))
         except ValueError:return self.respond(400)
         if not 0<length<=4096:return self.respond(413)
+        if not permit_attempt():return self.respond(429,b'Too many attempts. Please wait a minute.',{'Retry-After':'60'})
         fields=parse_qs(self.rfile.read(length).decode('utf-8',errors='replace'))
         password=fields.get('password',[''])[0]
-        if len(password)>256 or not password_ok(password):
+        if not HASH_SLOTS.acquire(blocking=False):return self.respond(429,b'Please try again shortly.',{'Retry-After':'5'})
+        try:valid=len(password)<=256 and password_ok(password)
+        finally:HASH_SLOTS.release()
+        if not valid:
             return self.respond(200,PAGE.replace('ERROR','<p class="error" role="alert">That’s not the word. Give it another try.</p>').encode(),{'Content-Type':'text/html; charset=utf-8'})
         cookie='mapleforge_preview='+token(int(time.time())+TTL)+'; Path=/; Max-Age='+str(TTL)+'; Secure; HttpOnly; SameSite=Lax'
         self.respond(303,headers={'Location':'/portal1/','Set-Cookie':cookie})
