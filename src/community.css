@@ -3802,3 +3802,12 @@ body #app .bookmark-toggle svg, body #app #cards .save svg { width:23px; height:
 .appearance-section[hidden] { display:none !important; }
 body[data-menu-style] .sidebar .nav button { font-size:var(--menu-font-size,15px); font-weight:var(--menu-font-weight,600); }
 body[data-menu-style] .sidebar .nav .bookmarks-nav { font-weight:var(--menu-font-weight,600); }
+
+/* Project Debate diagrams retain their full decision branches at every zoom. */
+.debate-page {max-width:1200px;margin:0 auto}
+.debate-page>p {margin:8px 0}
+.debate-tools {display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.debate-tools a {margin-left:auto}
+.debate-tools [aria-pressed="true"] {outline:2px solid currentColor;outline-offset:1px}
+.debate-diagram {overflow:auto;background:#fafbf9;border:1px solid var(--border,#759386);border-radius:8px;max-height:78vh}
+.debate-reading {margin:14px 0}.debate-reading summary {cursor:pointer;font-weight:600}.debate-reading li {margin:8px 0}

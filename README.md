@@ -202,3 +202,7 @@ Bookmarks is the first sidebar link and shows a private saved-item count. Member
 The sidebar offers English and Canadian French next to Appearance. An explicit language choice is stored in this browser. Without one, the first supported language in the browser language preferences selects the interface, including `fr-CA`. No location lookup is used. Interface translations live in `src/locale.js`; member-written content stays in its original language. Form option values remain canonical when their visible labels are translated.
 
 The approved red-leaf wordmark is in `public/mapleforge-wordmark.png`. The Project Framework header is compact and has no whole-page bookmark control.
+
+## Project Debate
+
+`?section=debate` opens the proposed MyDebate discussion process directly beneath Project Framework. Two zoomable SVG diagrams preserve all decision branches; JPEG downloads live under `portal1/charts/` and share portal access controls. Editable Graphviz `.dot` sources accompany the graphics. This explanatory page does not enable AI moderation or change ballots, permissions, or project stages. Criteria, deadlines and unresolved-point rules remain proposals.

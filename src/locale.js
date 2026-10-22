@@ -1,5 +1,9 @@
 {
   const french = {
+"Project Debate":"Débat de projet", "Proposal for discussion":"Proposition à discuter", "Inside MyDebate":"Le protocole MyDebate", "Framework + MyDebate":"Cadre + MyDebate", "Download JPEG":"Télécharger le JPEG", "Fit":"Ajuster", "Read the process in text":"Lire le processus en texte",
+"People debate. People decide. AI moderates.":"Les membres débattent et décident. L’IA modère.",
+"Every point stays in one shared record until it has an explicit outcome or an agreed next step.":"Chaque point reste dans un dossier commun jusqu’à une conclusion explicite ou une prochaine étape convenue.",
+"This proposes a discussion process for the Project Framework's Challenge stage. AI moderation is not enabled. Judgment criteria, deadlines and decision rules remain for members to agree.":"Ce processus est proposé pour la phase de remise en question du Cadre de projet. La modération par IA n’est pas activée. Les critères, délais et règles de décision restent à convenir entre membres.",
 "Page content":"Contenu des pages", "Left menu":"Menu de gauche", "Appearance sections":"Sections d’apparence", "Menu text size":"Taille du texte du menu", "Menu text weight":"Épaisseur du texte du menu", "Regular":"Normal", "Semibold":"Demi-gras", "Bold":"Gras",
 "Colour theme":"Thème de couleurs", "Idea board layout":"Disposition du tableau d’idées", "Content spacing":"Espacement du contenu", "Left menu spacing":"Espacement du menu de gauche", "Left menu style":"Style du menu de gauche", "Compact":"Compact", "Comfortable":"Confortable", "Spacious":"Spacieux", "Simple":"Simple", "Soft blocks":"Blocs arrondis", "Outlined":"Contours", "Changes apply instantly. Only your view changes.":"Les changements sont immédiats et ne modifient que votre affichage.",
     Bookmarks: "Favoris",
