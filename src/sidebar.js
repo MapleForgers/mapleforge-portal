@@ -12,6 +12,9 @@
     if (!link) return;
     link.classList.toggle("nav-group-start", groupIndex > 0 && index === 0);
     link.querySelectorAll("svg, [data-icon]").forEach(icon => icon.remove());
+    link.querySelectorAll("span").forEach(span => {
+      if (!span.textContent.trim() && !span.children.length) span.remove();
+    });
     navigation.append(link);
   }));
 }
