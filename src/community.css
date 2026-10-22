@@ -3862,8 +3862,8 @@ body .sidebar .nav .personal-nav-row > [data-view] { flex:1; min-width:0; width:
 /* Fit the visible wordmark, excluding the transparent padding in its source. */
 body .sidebar .brand {
   display:block;
-  width:calc(100% + 16px);
-  margin:0 -8px 10px;
+  width:calc(100% + 8px);
+  margin:0 0 10px -8px;
   padding:0;
   aspect-ratio:2029 / 531;
   overflow:hidden;
