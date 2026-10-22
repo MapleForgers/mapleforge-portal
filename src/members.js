@@ -85,11 +85,10 @@ if (location.hostname === "maple-forge.ca") {
   }
   function editProfile() {
     if (!requireAccount()) return;
-    let p = account.profile || {};
     formTab(
       "member-profile-editor",
       "My profile",
-      `<p>Connected as @${esc(account.username)}. Your Discord account keeps ownership of this profile.</p><label class="form-field">Display name<input name="name" required maxlength="80" value="${esc(account.name)}"></label><label class="form-field">Main skill area<input name="category" required maxlength="80" value="${esc(p.category || "Technology")}"></label><label class="form-field">Skills and experience<textarea name="summary" maxlength="2000">${esc(p.summary || "")}</textarea></label><label class="form-field">Services and availability<textarea name="services" maxlength="2000">${esc(p.services || "")}</textarea></label><p class="small muted">This changes your portal display name. Your Discord username stays linked to your account.</p>`,
+      `<p>Connected as @${esc(account.username)}. Your Discord account keeps ownership of this profile.</p><label class="form-field">Display name<input name="name" required maxlength="80" value="${esc(account.name)}"></label><p class="small muted">This changes your portal display name. Your Discord username stays linked to your account.</p>`,
       (f) => api("/api/profile", f),
     );
   }

@@ -122,7 +122,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path=='/api/logout':
                     c.execute('DELETE FROM sessions WHERE token=?',(user['token'],));return self.send(200,{'ok':True}, {'Set-Cookie':'mapleforge_member=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax'})
                 if path=='/api/profile':
-                    name=field('name',80);profile={'category':field('category',80),'summary':field('summary',2000,False),'services':field('services',2000,False)}
+                    name=field('name',80);profile=json.loads(user['profile'])
+                    for key,limit in [('category',80),('summary',2000),('services',2000)]:
+                        if key in data:profile[key]=field(key,limit,False)
                     c.execute('UPDATE users SET name=?,profile=? WHERE id=?',(name,json.dumps(profile),user['uid']))
                     shared.event(c,user['uid'],'People & skills',user['uid'],'Profiles','updated their profile')
                 elif path=='/api/posts':
