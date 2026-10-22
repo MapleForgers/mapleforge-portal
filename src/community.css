@@ -3480,7 +3480,7 @@ summary:focus-visible {
 /* Idea descriptions carry the proposal, so give them primary-text contrast. */
 #cards .card > p {
   color: var(--ink);
-  font-size: 1.05em;
+  font-size: calc(16px * var(--text-scale, 1)) !important;
   font-weight: 500;
   line-height: 1.5;
   margin-top: 5px;
