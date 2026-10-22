@@ -3741,3 +3741,18 @@ body[data-density] #main .bookmark-result .bookmark-toggle {
 #sidebar-preferences .settings-fields label { color:var(--ink); font-size:12px !important; }
 #sidebar-preferences .settings-fields select { width:100%; min-height:36px !important; }
 #sidebar-preferences .settings-fields .pref-hint { display:none; }
+
+/* Larger navigation text with less space between destinations. */
+body .sidebar .nav { gap:1px; }
+body .sidebar .nav button {
+  font-size:calc(15px * var(--text-scale, 1));
+  font-weight:600;
+  line-height:1.25;
+  padding:6px 9px;
+  min-height:32px;
+  white-space:normal;
+  overflow-wrap:break-word;
+}
+body .sidebar .nav .nav-group-start { margin-top:5px; }
+body .sidebar .nav .nav-count,
+body .sidebar .nav .bookmark-count { font-size:11px; flex-shrink:0; }
