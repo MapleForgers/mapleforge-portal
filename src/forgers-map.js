@@ -55,7 +55,36 @@ if (window.MF) {
       map=L.map('forgers-map',{minZoom:2,maxZoom:17}).fitBounds([[42,-141],[72,-52]]);
       map.attributionControl.setPrefix(false);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,referrerPolicy:'strict-origin-when-cross-origin',attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
-      pins.forEach(p=>{const marker=L.marker([p.lat,p.lng],{icon:L.divIcon({className:'forge-map-marker',html:`<span class="map-pin-label"><strong>${esc(p.name)}</strong>${p.flags.length?badge(p.flags):''}</span>`,iconSize:[0,0],iconAnchor:[0,0]}),title:p.name+' · '+p.label,alt:p.name+' · '+p.label}).addTo(map);marker.bindTooltip(esc(p.name)+' · '+esc(p.label));marker.on('click',()=>detail(p));});
+      const pinLayer=L.layerGroup().addTo(map);
+      function drawPins(){
+        pinLayer.clearLayers();
+        // Group intersecting label footprints in screen space, including identical locations.
+        const groups=[];
+        for(const p of pins){
+          const xy=map.latLngToLayerPoint([p.lat,p.lng]);
+          const width=Math.min(110,Math.max(32,p.name.length*8))+p.flags.length*24+14;
+          let group={pins:[p],left:xy.x,right:xy.x+width,top:xy.y-12,bottom:xy.y+12};
+          for(let i=groups.length-1;i>=0;i--){const g=groups[i];if(group.left<g.right+8&&group.right+8>g.left&&group.top<g.bottom+6&&group.bottom+6>g.top){group={pins:group.pins.concat(g.pins),left:Math.min(group.left,g.left),right:Math.max(group.right,g.right),top:Math.min(group.top,g.top),bottom:Math.max(group.bottom,g.bottom)};groups.splice(i,1);i=groups.length;}}
+          groups.push(group);
+        }
+        for(const g of groups){
+          const p=g.pins[0];
+          if(g.pins.length===1){
+            const marker=L.marker([p.lat,p.lng],{icon:L.divIcon({className:'forge-map-marker',html:`<span class="map-pin-label"><strong>${esc(p.name)}</strong>${p.flags.length?badge(p.flags):''}</span>`,iconSize:[0,0],iconAnchor:[0,0]}),title:p.name+' · '+p.label,alt:p.name+' · '+p.label}).addTo(pinLayer);
+            marker.bindTooltip(esc(p.name)+' · '+esc(p.label));marker.on('click',()=>detail(p));
+          }else{
+            const centre=[g.pins.reduce((n,p)=>n+p.lat,0)/g.pins.length,g.pins.reduce((n,p)=>n+p.lng,0)/g.pins.length];
+            const marker=L.marker(centre,{icon:L.divIcon({className:'forge-map-cluster',html:`<span>${g.pins.length}</span>`,iconSize:[30,30],iconAnchor:[15,15]}),title:g.pins.length+' '+(document.documentElement.lang==='fr'?'membres':'members')}).addTo(pinLayer);
+            marker.bindTooltip(g.pins.length+' '+(document.documentElement.lang==='fr'?'membres':'members'));
+            marker.on('click',()=>{
+              const box=document.getElementById('map-person');box.replaceChildren();
+              g.pins.forEach(p=>{const b=document.createElement('button');b.className='map-member';b.innerHTML=`<strong>${esc(p.name)}</strong>${badge(p.flags)}`;b.onclick=()=>detail(p);box.append(b);});
+              if(map.getZoom()<17)map.setView(centre,Math.min(17,map.getZoom()+2));
+            });
+          }
+        }
+      }
+      drawPins();map.on('zoomend moveend',drawPins);
       map.on('click',e=>{if(editing)place(e.latlng.lat,e.latlng.lng);});
       if(editing)edit();
     }catch(err){error(err.message);}
