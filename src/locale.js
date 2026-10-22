@@ -1,5 +1,7 @@
 {
   const french = {
+"reply":"réponse", "person replying":"personne ayant répondu", "Less than a day old":"Moins d’un jour", "day old":"jour depuis la publication",
+"replies":"réponses", "people replying":"personnes ayant répondu", "Posted today":"Publiée aujourd’hui", "days old":"jours depuis la publication", "Date unavailable":"Date indisponible", "min read":"min de lecture",
 "Original proposal":"Proposition originale", "Earlier discussion":"Discussion antérieure", "Selected messages from the original conversation. These are not new portal comments or recorded votes.":"Messages sélectionnés dans la conversation originale. Il ne s’agit pas de nouveaux commentaires du portail ni de votes enregistrés.", "No relevant follow-up messages were captured in this review.":"Aucun message de suivi pertinent n’a été recueilli lors de cette révision.",
 "Update available · Reload":"Mise à jour disponible · Recharger", "View this version on GitHub":"Voir cette version sur GitHub",
 "Project Debate":"Débat de projet", "Proposal for discussion":"Proposition à discuter", "Inside MyDebate":"Le protocole MyDebate", "Framework + MyDebate":"Cadre + MyDebate", "Download JPEG":"Télécharger le JPEG", "Fit":"Ajuster", "Read the process in text":"Lire le processus en texte",

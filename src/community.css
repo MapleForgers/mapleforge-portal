@@ -3925,3 +3925,26 @@ body .appearance-sections button[aria-selected="true"] { background:var(--ink); 
 .harvest-replies { margin-top: 14px; }
 .harvest-replies summary { cursor: pointer; font-weight: 650; padding: 8px 0; }
 .harvest-replies[open] > .small { margin: 5px 0; }
+
+/* Idea titles lead; metadata and actions stay compact. */
+body #main #cards .card { min-height:0 !important; height:auto !important; padding:14px 16px !important; gap:0; }
+body #main #cards .card-top { margin:0 0 6px !important; }
+body #main #cards .card h3, body #main #cards .card .title-btn { font-size:calc(24px * var(--text-scale,1)) !important; line-height:1.22 !important; font-weight:750 !important; margin:0 0 8px !important; letter-spacing:-.3px; }
+body #main #cards .card > p { font-size:calc(16px * var(--text-scale,1)) !important; line-height:1.5; margin:0 0 10px !important; color:var(--ink) !important; }
+body #main #cards .author { margin:0 0 8px !important; }
+body #main #cards .card-footer { margin:0 !important; padding:6px 0 0 !important; border:0 !important; gap:12px; flex-wrap:wrap; }
+body #main #cards .idea-members-row { margin:0 !important; padding:3px 0 !important; border:0 !important; }
+.idea-quick-stats { display:flex; flex-wrap:wrap; gap:4px 15px; align-items:center; margin:2px 0 6px; font-size:calc(13px * var(--text-scale,1)); color:var(--muted); }
+.idea-reply-summary { padding:0; border:0; background:none; color:var(--ink); font:inherit; font-weight:650; text-align:left; }
+.idea-reply-summary:hover { text-decoration:underline; }
+body #main #cards.layout-compact .idea-quick-stats { grid-column:2; grid-row:5; }
+body #main #cards.layout-compact .card h3, body #main #cards.layout-compact .title-btn { font-size:calc(21px * var(--text-scale,1)) !important; }
+body #main #cards.layout-compact .card-footer { flex-direction:column; }
+body #main #cards.layout-lanes .card h3, body #main #cards.layout-lanes .title-btn { font-size:calc(20px * var(--text-scale,1)) !important; }
+body[data-density="compact"] #main #cards .card { padding:10px 12px !important; }
+body[data-density="roomy"] #main #cards .card { padding:20px !important; }
+
+body #main #cards.layout-feed .card { display:flex !important; flex-direction:column; }
+body #main #cards .card-footer .vote { position:static !important; inset:auto !important; width:auto !important; min-height:0 !important; flex-direction:row !important; padding:4px 8px !important; }
+body #main #cards .idea-quick-stats { grid-column:1/-1; }
+body #main #cards.layout-compact .idea-quick-stats { grid-column:2; }

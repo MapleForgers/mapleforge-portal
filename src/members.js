@@ -45,6 +45,7 @@ if (location.hostname === "maple-forge.ca") {
       id: p.id,
       title: p.title,
       summary: p.body,
+      created: p.created,
       category: p.category,
       proposer: p.author,
       imported: false,
