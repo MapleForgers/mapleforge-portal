@@ -1,0 +1,7 @@
+[Unit]
+Description=Check MapleForge import retention hourly
+[Timer]
+OnCalendar=hourly
+Persistent=true
+[Install]
+WantedBy=timers.target

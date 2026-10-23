@@ -53,7 +53,7 @@ def remove(c,uid,data):
         for row in c.execute('SELECT * FROM comments WHERE uid=?',(uid,)).fetchall():delete_comment(c,row)
         scrub_activity(c,[r['id'] for r in c.execute('SELECT id FROM activity WHERE uid=? OR target=?',(uid,uid))])
         c.execute('DELETE FROM relations WHERE uid=? OR target=? OR target=?',(uid,'People:'+uid,'People & skills:'+uid))
-        for table in ('discord_consent','discord_consent_history','sessions','preferences','member_details','member_locations','pending_map_activity'):c.execute('DELETE FROM '+table+' WHERE uid=?',(uid,))
+        for table in ('discord_import_authors','discord_consent','discord_consent_history','sessions','preferences','member_details','member_locations','pending_map_activity'):c.execute('DELETE FROM '+table+' WHERE uid=?',(uid,))
         c.execute('DELETE FROM users WHERE id=?',(uid,))
         return
     if kind=='Comments':

@@ -12,7 +12,7 @@ if (window.MF) {
       <p>This does not include direct messages or private channels. You can decline and still use the portal.</p>
       <label style="display:block;margin:16px 0"><input type="checkbox" name="existing"> Allow my existing contributions to be included.</label>
       <label style="display:block;margin:16px 0"><input type="checkbox" name="future"> Allow future relevant contributions to be included.</label>
-      <p>Change your choices in My content &amp; privacy. Withdrawing a permission automatically hides the imports covered by that choice. Hidden entries keep anonymous placeholders and counts. Older imports stay hidden until their author is linked to a verified Discord ID and has opted in. Contact a portal administrator to request permanent removal. Server recovery backups expire within 30 days; hidden originals are retained separately for consent review until you request deletion.</p>
+      <p>Change your choices in My content &amp; privacy. Withdrawing a permission automatically hides the imports covered by that choice. Hidden entries keep anonymous placeholders and counts. Older imports stay hidden until their author is linked to a verified Discord ID and has opted in. Contact a portal administrator to request permanent removal. Server recovery backups expire within 30 days; unconsented originals are deleted after 30 days of being hidden, leaving anonymous counts.</p>
       <p role="alert" data-error></p><button type="submit" class="btn">Save my choices</button> <button type="button" class="btn secondary" data-decline>Decline both</button>
       <p><small>Notice version: 2026-10-22-v2</small></p></form>`;
     const form = dialog.querySelector('form');

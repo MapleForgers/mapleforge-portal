@@ -36,8 +36,8 @@ class MapTests(unittest.TestCase):
   self.save();shared.mutate(self.c,self.user,{'op':'map_pin','remove':True},{})
   self.assertEqual(self.c.execute('SELECT COUNT(*) FROM pending_map_activity').fetchone()[0],0)
 
- def test_explicitly_chosen_pin_precision_is_preserved(self):
-  # Product choice: manually selected coordinates remain precise, never auto-located.
+ def test_chosen_pin_is_coarsened_on_server(self):
+  # Server coarsening also protects clients that bypass the editor.
   self.save(lat=45.51234,lng=-73.56789)
   row=self.c.execute('SELECT lat,lng FROM member_locations').fetchone()
-  self.assertEqual(tuple(row),(45.51234,-73.56789))
+  self.assertEqual(tuple(row),(45.51,-73.57))

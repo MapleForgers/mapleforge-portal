@@ -1,0 +1,10 @@
+[Unit]
+Description=Expire unconsented MapleForge Discord imports
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/mapleforge-members/retention.py
+User=root
+ProtectSystem=strict
+ReadWritePaths=/var/lib/mapleforge
+PrivateTmp=yes
+NoNewPrivileges=yes

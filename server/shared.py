@@ -21,6 +21,8 @@ def init(c):
     CREATE TABLE IF NOT EXISTS discord_consent_history(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,version TEXT NOT NULL,existing INTEGER NOT NULL,future INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
     ''')
+    # Coarsen legacy pins too, before any authenticated snapshot is served.
+    c.execute('UPDATE member_locations SET lat=ROUND(lat,2),lng=ROUND(lng,2)')
 def revision(c):
     return c.execute('SELECT value FROM content_version WHERE id=1').fetchone()[0]
 def now():return datetime.now(timezone.utc).isoformat()
@@ -83,7 +85,7 @@ def import_visible(c,payload):
 WAITING='Waiting for the contributor’s consent to show this.'
 def placeholder(row,payload):
     categories=IDEA_CATEGORIES if row['kind']=='Ideas' else GOVERNANCE_CATEGORIES if row['kind']=='Governance' else set()
-    result={'id':row['id'],'board':row['kind'],'uid':'','revision':row['revision'],'title':'Contribution awaiting consent','summary':WAITING,'body':WAITING,'description':WAITING,'detail':WAITING,'author':'Contributor','proposer':'Contributor','status':'Awaiting consent','consentHidden':True,'canEdit':False,'discussion':[],'withheldReplyCount':max(0,len(payload.get('discussion',[]))-1)}
+    result={'id':row['id'],'board':row['kind'],'uid':'','revision':row['revision'],'title':'Contribution awaiting consent','summary':WAITING,'body':WAITING,'description':WAITING,'detail':WAITING,'author':'Contributor','proposer':'Contributor','status':'Awaiting consent','consentHidden':True,'canEdit':False,'discussion':[],'withheldReplyCount':max(0,len(payload.get('discussion',[]))-1)+payload.get('expiredReplyCount',0)}
     if payload.get('category') in categories:result['category']=payload['category']
     return result
 
@@ -136,7 +138,7 @@ def snapshot(c,user,config):
             records.append(placeholder(row,r));continue
         if 'discussion' in r:
             original=r['discussion'];r['discussion']=[m for m in original if import_visible(c,m)]
-            r['withheldReplyCount']=len(original)-len(r['discussion'])
+            r['withheldReplyCount']=len(original)-len(r['discussion'])+r.get('expiredReplyCount',0)
             if r['withheldReplyCount']:r.pop('discussionNote',None)
         r=clean_record(r)
         r['author']=names.get(row['uid'],r.get('author','Community'))
@@ -205,10 +207,10 @@ def mutate(c,user,data,config):
         if type(lat) not in (int,float) or type(lng) not in (int,float) or not math.isfinite(lat) or not math.isfinite(lng) or not (-85<=lat<=85 and -180<=lng<=180):raise Problem(400,'Choose a valid map position.')
         province_flags={'CA-AB','CA-BC','CA-MB','CA-NB','CA-NL','CA-NS','CA-NT','CA-NU','CA-ON','CA-PE','CA-QC','CA-SK','CA-YT'}
         if not isinstance(flags,list) or len(flags)>3 or any(not isinstance(f,str) or not (f in province_flags or len(f)==2 and f.isascii() and f.isalpha() and f.isupper()) for f in flags):raise Problem(400,'Choose up to three flags.')
-        values=(round(lat,5),round(lng,5),label,json.dumps(list(dict.fromkeys(flags))))
+        values=(round(lat,2),round(lng,2),label,json.dumps(list(dict.fromkeys(flags))))
         if previous and tuple(previous[k] for k in ('lat','lng','label','flags'))==values:return {}
         queue_map_activity(c,uid,'updated their map pin' if previous else 'added their map pin')
-        c.execute('INSERT INTO member_locations VALUES(?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET lat=excluded.lat,lng=excluded.lng,label=excluded.label,flags=excluded.flags',(uid,round(lat,5),round(lng,5),label,json.dumps(list(dict.fromkeys(flags)))))
+        c.execute('INSERT INTO member_locations VALUES(?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET lat=excluded.lat,lng=excluded.lng,label=excluded.label,flags=excluded.flags',(uid,round(lat,2),round(lng,2),label,json.dumps(list(dict.fromkeys(flags)))))
         return {}
     if op=='preferences':
         p=data.get('preferences');valid={}

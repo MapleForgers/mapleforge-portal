@@ -307,3 +307,11 @@ Consent choices and UTC timestamps are stored in `discord_consent` and `discord_
 Recovery backups in `/var/backups/mapleforge` expire within 30 days. `ops/expire_backups.py` runs hourly through the supplied systemd timer and expires entries at 29 days to allow scheduling margin. The timer is persistent across reboots. Hidden originals in the live database are retained for consent review, not treated as expiring recovery backups. After any restore, reapply current consent choices or invalidate restored choices before reopening the portal. A historical backup must not restore withdrawn permissions. This policy covers server recovery backups, not separate local working archives.
 
 My content & privacy lists verified, account-linked Discord imports separately from direct portal submissions. The owner can see each linked import’s title and visibility state, including after withdrawal. Unmatched imports have an explicit pending-verification explanation.
+
+## Import retention and map privacy
+
+Map coordinates are rounded on the server to two decimals, including existing pins at startup. The map zoom is capped at 11. A grid cell is approximately 1.1 km north/south; east/west distance varies by latitude. This is coarsening, not a guarantee of anonymity. Members should use city or region labels, never addresses.
+
+Run `server/retention.py` hourly using the import-expiry service and timer in `ops/`. It records the first hidden time, expires unconsented originals at 29 days (within the stated 30-day limit), and preserves anonymous counts. Consented originals and native portal contributions remain. Legacy imports start their clock at the first scan. Withdrawing consent starts a new hidden period. Expired originals cannot be restored by later consent.
+
+Account deletion also removes verified Discord import-author mappings. Recovery backups and retired development exports must be consolidated under `/var/backups/mapleforge`, with the existing hourly expiry timer. Do not create unmanaged copies or cloud snapshots containing member data. Any independently managed copies require the same expiry policy. A restore must reapply current consent and expiry state before reopening access.
