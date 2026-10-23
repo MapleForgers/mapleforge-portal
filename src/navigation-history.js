@@ -68,7 +68,7 @@ window.addEventListener("popstate", (event) => {
       paneTitles[place.id] = place.title;
       paneParents[place.id] = place.parent;
     }
-    if (!openSections.includes(place.id)) openSections.push(place.id);
+    openNextWorkspaceTab = false;
     switchSection(place.id);
   } finally {
     // Redrawing while restoring must not add a new browser history entry.

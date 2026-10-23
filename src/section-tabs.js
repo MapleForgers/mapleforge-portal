@@ -68,8 +68,23 @@ function restorePane(id) {
     openGovernance(r.id);
   }
 }
+let openNextWorkspaceTab = false;
+let modifiedWorkspaceClick = false;
+document.addEventListener("click", event => {
+  modifiedWorkspaceClick = event.ctrlKey || event.metaKey;
+  queueMicrotask(() => { modifiedWorkspaceClick = false; });
+}, true);
+function selectWorkspaceDestination(id) {
+  if (!openSections.includes(id)) {
+    const index = openSections.indexOf(activeSection);
+    if (openNextWorkspaceTab || modifiedWorkspaceClick || index < 0) openSections.push(id);
+    else openSections.splice(index, 1, id);
+  }
+  openNextWorkspaceTab = false;
+}
 function switchSection(id) {
   sectionScroll[activeSection] = window.scrollY;
+  selectWorkspaceDestination(id);
   activeSection = id;
   if (paneTabs[id]) {
     restorePane(id);
@@ -135,9 +150,10 @@ render = function () {
   let changed = view !== lastSection;
   if (changed) {
     sectionScroll[lastSection] = window.scrollY;
+    selectWorkspaceDestination(view);
     activeSection = view;
   }
-  if (!openSections.includes(view)) openSections.push(view);
+  if (!paneTabs[activeSection] && !openSections.includes(view)) selectWorkspaceDestination(view);
   renderBeforeSectionTabs();
   $("#crumb").textContent = sectionLabels[view];
   drawSectionTabs();
@@ -173,7 +189,7 @@ HTMLDialogElement.prototype.showModal = function () {
   this.removeAttribute("aria-modal");
   paneHost.append(this);
   this.open = true;
-  if (!openSections.includes(id)) openSections.push(id);
+  selectWorkspaceDestination(id);
   activeSection = id;
   showActivePane();
   drawSectionTabs();
@@ -194,7 +210,8 @@ HTMLDialogElement.prototype.close = function () {
     let parent = paneParents[id];
     activeSection = openSections.includes(parent)
       ? parent
-      : openSections.at(-1) || "ideas";
+      : parent || openSections.at(-1) || "ideas";
+    if (!openSections.includes(activeSection)) openSections.push(activeSection);
     if (!paneTabs[activeSection]) view = activeSection;
   }
   delete paneParents[id];

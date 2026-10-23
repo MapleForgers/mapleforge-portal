@@ -17,7 +17,11 @@ Working shared features:
 - A skill category index with counts, grouped listings and filtering.
 - A separate Project Framework discussion draft with seven selectable phases, point-specific feedback prompts and saved phase conversations.
 - Community Rules with the dated Discord source and reminders beside discussions.
-- Four themes, adjustable text size, compact lists, cards and workspace tabs.
+- People & resources groups the people directory, member details, available skills and available resources with section tabs. Existing section URLs remain valid.
+- Four themes use shared semantic surface, text and action tokens in `src/design-system.css`, with common cards, fields, filters and buttons.
+- A persistent header and hamburger navigation on screens up to 900 pixels wide. The navigation drawer supports Escape and keyboard focus cycling.
+- Normal navigation reuses the current workspace tab. Choose “Open next in new tab” (＋ Tab on mobile), or Ctrl/Cmd-click a destination, to retain the current view.
+- Adjustable text size, compact lists and cards.
 - Section URLs and page titles that follow navigation, with reload and browser Back/Forward support.
 
 Ideas, comments, profiles, votes, idea memberships and contributions, feature requests, task records, governance proposals, and activity now use shared SQLite storage. Bookmarks, follows, and appearance preferences belong to the signed-in account. Visible shared views check a content revision every 15 seconds and reload only when it changes. Unsent form drafts stay in session storage until submitted; earlier browser-only drafts can be reviewed and published explicitly.

@@ -1,0 +1,17 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const source = fs.readFileSync('src/section-tabs.js', 'utf8');
+const helper = source.slice(source.indexOf('function selectWorkspaceDestination'), source.indexOf('function switchSection'));
+const state = {openSections:['ideas'], activeSection:'ideas',openNextWorkspaceTab:false, modifiedWorkspaceClick:false};
+vm.createContext(state); vm.runInContext(helper,state);
+state.selectWorkspaceDestination('people'); assert.deepEqual([...state.openSections],['people']);
+state.activeSection='people';state.openNextWorkspaceTab=true;state.selectWorkspaceDestination('tasks');
+assert.deepEqual([...state.openSections],['people','tasks']);assert.equal(state.openNextWorkspaceTab,false);
+state.activeSection='tasks';state.selectWorkspaceDestination('pane-task-1');
+assert.deepEqual([...state.openSections],['people','pane-task-1']);
+state.activeSection='pane-task-1';state.selectWorkspaceDestination('people');
+assert.equal(state.openSections.length,2);
+state.activeSection='people';state.modifiedWorkspaceClick=true;state.selectWorkspaceDestination('resource');
+assert.deepEqual([...state.openSections],['people','pane-task-1','resource']);
+console.log('Workspace replacement, explicit tabs and existing-tab focus passed');

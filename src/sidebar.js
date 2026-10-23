@@ -1,6 +1,9 @@
 // Keep everyday navigation together, followed by people and community planning.
 {
   const navigation = document.querySelector(".nav");
+  ["details", "exchange", "resource"].forEach(id => navigation.querySelector(`[data-view="${id}"]`)?.remove());
+  const peopleLink = navigation.querySelector('[data-view="people"]');
+  if (peopleLink) peopleLink.textContent = "People & resources";
   const groups = [
     ["bookmarks", "rules"],
     ["activity", "ideas", "tasks", "contributions"],
