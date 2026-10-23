@@ -42,7 +42,7 @@ class Connection(sqlite3.Connection):
         try:return super().__exit__(*args)
         finally:self.close()
 def db():
-    c=sqlite3.connect(DB,timeout=15,factory=Connection);c.row_factory=sqlite3.Row;return c
+    c=sqlite3.connect(DB,timeout=15,factory=Connection);c.row_factory=sqlite3.Row;c.execute('PRAGMA secure_delete=ON');return c
 def init():
     with db() as c:
         c.executescript('''PRAGMA journal_mode=WAL;

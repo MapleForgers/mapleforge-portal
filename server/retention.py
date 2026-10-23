@@ -77,4 +77,4 @@ if __name__=='__main__':
         c.execute('PRAGMA secure_delete=ON')
         print('Expired import entries:',expire(c,os.environ.get('IMPORTED_PEOPLE','/var/lib/mapleforge/imported-people.json')))
     # Remove deleted originals from free pages. Backups follow their own expiry.
-    c.execute('VACUUM');c.close()
+    c.execute('VACUUM');c.execute('PRAGMA wal_checkpoint(TRUNCATE)');c.close()
