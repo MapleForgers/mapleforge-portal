@@ -75,6 +75,6 @@ if __name__=='__main__':
     c=sqlite3.connect(os.environ.get('MEMBER_DB','/var/lib/mapleforge/members.sqlite3'));c.row_factory=sqlite3.Row
     with c:
         c.execute('PRAGMA secure_delete=ON')
-        print('Expired import entries:',expire(c,os.environ.get('IMPORTED_PEOPLE','/var/lib/mapleforge/imported-people.json')))
+        print('Updated import entries:',expire(c,os.environ.get('IMPORTED_PEOPLE','/var/lib/mapleforge/imported-people.json')))
     # Remove deleted originals from free pages. Backups follow their own expiry.
     c.execute('VACUUM');c.execute('PRAGMA wal_checkpoint(TRUNCATE)');c.close()
