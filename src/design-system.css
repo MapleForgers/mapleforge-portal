@@ -81,3 +81,7 @@ body { background:var(--surface-page); color:var(--text-primary); }
   .workspace-new-tab { grid-column:2; grid-row:1; justify-self:start; }
 }
 #main input::placeholder,.workspace-page input::placeholder,#main textarea::placeholder,.workspace-page textarea::placeholder { color:var(--text-secondary); opacity:1; }
+/* Count badges need their own foreground, even inside a selected filter. */
+#main .filter-chip span { color:var(--text-primary); background:var(--surface-subtle); }
+#main .filter-chip[aria-pressed="true"] span,
+#main .filter-chip.selected span { color:var(--text-on-action); background:transparent; }

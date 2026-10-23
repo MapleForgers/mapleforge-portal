@@ -2,11 +2,10 @@
 {
   const destinations = {people: 'People & skills', details: 'Member details', exchange: 'Available skills', resource: 'Available resources'};
   const before = render;
-  render = function () {
-    before();
+  function decoratePeopleHub() {
     if (!destinations[view]) return;
     const main = document.getElementById('main');
-    main.querySelector('.people-hub')?.remove();
+    if (main.querySelector('.people-hub')) return;
     main.querySelector('h1')?.classList.add('hub-view-title');
     const header = document.createElement('header');
     header.className = 'people-hub';
@@ -23,6 +22,9 @@
     main.prepend(header);
     document.querySelector('.nav [data-view="people"]')?.classList.add('active');
   };
+  render = function () { before(); decoratePeopleHub(); };
+  // Filters can redraw an individual directory without calling the global renderer.
+  new MutationObserver(decoratePeopleHub).observe(document.getElementById('main'), {childList:true});
   const sidebar = document.querySelector('.sidebar');
   sidebar.id = 'portal-navigation';
   const mobile = window.matchMedia('(max-width: 900px)');
