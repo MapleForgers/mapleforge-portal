@@ -4,7 +4,7 @@ Run hourly. A persistent first-hidden timestamp prevents repeated scans or
 restarts extending the deadline. Consented text is not removed. Legacy imports
 start their clock on the first scan; withdrawal starts a new hidden period.
 """
-import hashlib,json,os,time
+import hashlib,json,os,time,stat
 from pathlib import Path
 import shared
 DAYS=29  # One day of scheduling margin for the public 30-day limit.
@@ -51,9 +51,12 @@ def expire(c,people_path,at=None):
                 people[i]={'id':p['id'],'retentionExpired':True};updated=True;changed+=1
                 c.execute('UPDATE relations SET payload=? WHERE target=?',('{}','People:'+p['id']))
         if updated:
+            original_stat=path.stat()
             temp=path.with_name(path.name+'.retention-new')
             with open(temp,'w') as f:
                 os.chmod(temp,0o600);json.dump(people,f);f.flush();os.fsync(f.fileno())
+            os.chown(temp,original_stat.st_uid,original_stat.st_gid)
+            os.chmod(temp,stat.S_IMODE(original_stat.st_mode))
             os.replace(temp,path)
     # Forget identity mappings when no retained original still references them.
     referenced=set()
