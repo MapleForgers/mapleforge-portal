@@ -79,7 +79,7 @@
       openNextWorkspaceTab = !openNextWorkspaceTab;
       newTab.setAttribute('aria-pressed', String(openNextWorkspaceTab));
     };
-    sectionStrip.append(newTab);
+    menu.after(newTab);
   };
   setMenu(false);
   render();

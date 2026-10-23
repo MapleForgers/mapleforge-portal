@@ -44,11 +44,6 @@ function rememberPortalPlace() {
     history.pushState(browserEntry, "", route);
   }
 }
-function travelPortal(direction) {
-  const next = portalTrailIndex + direction;
-  if (next < 0 || next >= portalTrail.length) return;
-  history.go(direction);
-}
 window.addEventListener("popstate", (event) => {
   const state = event.state;
   if (!state?.mapleforgeNavigation) return;
@@ -81,27 +76,6 @@ drawSectionTabs = function () {
   rememberPortalPlace();
   tabsBeforeHistory();
   document.title = tabLabel(activeSection) + " · MapleForge";
-  const controls = document.createElement("div");
-  controls.className = "portal-history";
-  controls.setAttribute("role", "group");
-  controls.setAttribute("aria-label", "Navigation history");
-  for (const [direction, label, symbol] of [
-    [-1, "Back", "←"],
-    [1, "Forward", "→"],
-  ]) {
-    const button = document.createElement("button");
-    button.className = "btn secondary";
-    button.type = "button";
-    button.textContent = symbol;
-    button.setAttribute("aria-label", label);
-    button.title = label;
-    button.disabled =
-      direction < 0
-        ? portalTrailIndex <= 0
-        : portalTrailIndex >= portalTrail.length - 1;
-    button.onclick = () => travelPortal(direction);
-    controls.append(button);
-  }
-  sectionStrip.prepend(controls);
+
 };
 drawSectionTabs();
