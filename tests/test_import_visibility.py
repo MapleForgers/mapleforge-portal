@@ -50,3 +50,14 @@ class ImportVisibilityTests(SharedTests):
     raw=json.dumps(self.req('/api/shared')[1]);self.assertNotIn('PRIVATE',raw)
     self.link('111','alice');self.consent()
     self.assertIn('PRIVATE BIO',json.dumps(self.req('/api/shared')[1]))
+
+ def test_my_content_lists_verified_imports_separately(self):
+  self.assertEqual(self.req('/api/my-content')[1]['importedItems'],[])
+  self.link('111','alice');self.consent()
+  imported=self.req('/api/my-content')[1]['importedItems']
+  self.assertEqual(len(imported),1)
+  self.assertEqual(imported[0]['title'],'PRIVATE TITLE')
+  self.assertTrue(imported[0]['visible'])
+  self.assertEqual(self.req('/api/my-content',user='bob')[1]['importedItems'],[])
+  self.consent(existing=False)
+  self.assertFalse(self.req('/api/my-content')[1]['importedItems'][0]['visible'])

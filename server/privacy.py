@@ -28,6 +28,22 @@ def owned(c,uid):
     result += [{'id':r['id'],'kind':'Comments','title':r['body'][:140]} for r in c.execute('SELECT * FROM comments WHERE uid=?',(uid,))]
     return result
 
+def imported_owned(c,uid):
+    result=[]
+    for row in c.execute('SELECT * FROM records'):
+        payload=json.loads(row['payload'])
+        if not shared.is_imported(row['uid'],payload):continue
+        links=shared.source_links(payload)
+        if not links:continue
+        owners=[]
+        for link in links:
+            match=shared.re.fullmatch(r'https://discord.com/channels/1562193716423430334/(\d+)/(\d+)',link)
+            author=c.execute('SELECT uid,channel_id FROM discord_import_authors WHERE message_id=?',(match[2],)).fetchone() if match else None
+            owners.append(author['uid'] if author and author['channel_id']==match[1] else None)
+        if owners and all(owner==uid for owner in owners):
+            result.append({'id':row['id'],'kind':row['kind'],'title':payload.get('title','Imported contribution'),'visible':shared.import_visible(c,payload)})
+    return result
+
 def remove(c,uid,data):
     kind=shared.text(data,'kind',40,True);id=shared.text(data,'id',100)
     if kind=='Account':

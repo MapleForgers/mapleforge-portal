@@ -9,7 +9,10 @@ if(window.MF){
   const consentButton=document.createElement('button');consentButton.className='btn secondary';consentButton.textContent='Discord sharing permissions';consentButton.onclick=()=>M.openDiscordConsent?.();root.insertBefore(consentButton,document.getElementById('privacy-list'));
   const list=document.getElementById('privacy-list');
   try{const result=await M.api('/api/my-content');if(view!=='privacy')return;
-   list.innerHTML=result.items.map((x,i)=>`<article class="details-card"><strong>${esc(x.title)}</strong><p>${esc(x.kind)}</p><button class="btn secondary" data-delete-index="${i}">Remove</button></article>`).join('')||'<p>No submitted posts, comments or board entries.</p>';
+   list.innerHTML=result.items.map((x,i)=>`<article class="details-card"><strong>${esc(x.title)}</strong><p>${esc(x.kind)}</p><button class="btn secondary" data-delete-index="${i}">Remove</button></article>`).join('')||'<p>No posts, comments or board entries submitted directly through the portal.</p>';
+   const imported=document.createElement('section');
+   imported.innerHTML='<h2>My Discord imports</h2><p>These were copied from Discord and linked to your verified account. Use Discord sharing permissions to show or hide them. Contact an administrator for permanent removal.</p>'+(result.importedItems?.length ? result.importedItems.map(x=>`<article class="details-card"><strong>${esc(x.title)}</strong><p>${esc(x.kind)} · ${x.visible ? 'Visible with your consent' : 'Hidden pending consent'}</p></article>`).join('') : '<p>No Discord imports are linked to your account yet. If you contributed in Discord, an administrator needs to verify the original messages. Giving consent alone does not match older imports.</p>');
+   list.after(imported);
    list.querySelectorAll('[data-delete-index]').forEach(b=>b.onclick=()=>{
     pending=result.items[Number(b.dataset.deleteIndex)];const box=document.getElementById('privacy-confirm');
     box.innerHTML=`<p>Remove <strong>${esc(pending.title)}</strong> permanently from the live portal?</p><button id="privacy-yes" class="btn">Confirm removal</button> <button id="privacy-no" class="btn secondary">Cancel</button>`;

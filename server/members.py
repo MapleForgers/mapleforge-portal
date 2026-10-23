@@ -156,7 +156,7 @@ class Handler(BaseHTTPRequestHandler):
                 shared.flush_map_activity(c)
                 return self.send(200,{'version':shared.revision(c)})
         if path=='/api/my-content':
-            with db() as c:return self.send(200,{'items':privacy.owned(c,user['uid'])})
+            with db() as c:return self.send(200,{'items':privacy.owned(c,user['uid']),'importedItems':privacy.imported_owned(c,user['uid'])})
         if path=='/api/shared':
             with db() as c:return self.send(200,shared.snapshot(c,user,CONFIG))
         if path=='/api/community':

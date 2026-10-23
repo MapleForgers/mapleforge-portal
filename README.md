@@ -301,3 +301,5 @@ Consent choices and UTC timestamps are stored in `discord_consent` and `discord_
 ### Server recovery backup retention
 
 Recovery backups in `/var/backups/mapleforge` expire within 30 days. `ops/expire_backups.py` runs hourly through the supplied systemd timer and expires entries at 29 days to allow scheduling margin. The timer is persistent across reboots. Hidden originals in the live database are retained for consent review, not treated as expiring recovery backups. After any restore, reapply current consent choices or invalidate restored choices before reopening the portal. A historical backup must not restore withdrawn permissions. This policy covers server recovery backups, not separate local working archives.
+
+My content & privacy lists verified, account-linked Discord imports separately from direct portal submissions. The owner can see each linked import’s title and visibility state, including after withdrawal. Unmatched imports have an explicit pending-verification explanation.
