@@ -4,15 +4,15 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 
 test('consent starts unchecked, saves explicit decline, and reopens with saved choices', async () => {
-  let dialog, payload, status = {version:'2026-10-22-v1', answered:false, existing:false, future:false};
-  const M = {account:{id:'alice'}, hydrate:async()=>{M.bookmarkData={discordConsent:status};}, api:async(path,data)=>{payload=data; status={...data,answered:true};return {discordConsent:status};}};
+  let dialog, payload, status = {version:'2026-10-22-v2', answered:false, existing:false, future:false};
+  const M = {refresh:async()=>{},account:{id:'alice'}, hydrate:async()=>{M.bookmarkData={discordConsent:status};}, api:async(path,data)=>{payload=data; status={...data,answered:true};return {discordConsent:status};}};
   const document = {body:{append(){}},createElement(){
     const buttons=[{},{}], decline={}, error={};
     const form={elements:{existing:{checked:false},future:{checked:false}},querySelectorAll:()=>buttons,querySelector:s=>s==='[data-decline]'?decline:error};
     dialog={setAttribute(){},style:{},querySelector:()=>form,showModal(){this.open=true;},close(){this.open=false;},remove(){this.removed=true;},form,decline};
     return dialog;
   }};
-  vm.runInNewContext(fs.readFileSync('src/discord-consent.js','utf8'),{window:{MF:M},document,setTimeout});
+  vm.runInNewContext(fs.readFileSync('src/discord-consent.js','utf8'),{window:{MF:M},document,setTimeout,render(){}});
   await M.hydrate();
   assert.equal(dialog.open,true);
   assert.equal(dialog.form.elements.existing.checked,false);

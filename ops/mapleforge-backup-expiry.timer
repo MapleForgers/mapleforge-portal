@@ -1,0 +1,7 @@
+[Unit]
+Description=Hourly MapleForge recovery backup expiry
+[Timer]
+OnCalendar=hourly
+Persistent=true
+[Install]
+WantedBy=timers.target

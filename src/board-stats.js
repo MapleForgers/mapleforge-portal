@@ -41,10 +41,12 @@ function renderBoardStats() {
   }));
   const max = Math.max(1, ...counts.map((x) => x.count));
   const authors = new Set(items.map((x) => x.author).filter(Boolean));
+  const board = view === 'ideas' ? 'Ideas' : view === 'requests' ? 'Features' : 'Governance';
+  const authorCount = window.MF?.bookmarkData?.boardContributorCounts?.[board] ?? authors.size;
   const section = document.createElement("section");
   section.className = "board-statistics";
   section.setAttribute("aria-label", title + " statistics");
-  section.innerHTML = `<div class="stats-heading"><h1>${title === "Ideas" ? "Idea board" : title}</h1><div class="stats-totals"><strong>${items.length}</strong> ${title.toLowerCase()} <span>·</span> <strong>${authors.size}</strong> contributors</div>${view === "ideas" ? '<span class="stats-origin">Discord ideas + member posts</span>' : '<span class="stats-origin">Shared community records</span>'}</div><div class="board-stat-bars">${counts.map((x) => `<${select ? "button" : "div"} class="board-stat-bar" ${select ? `type="button" data-stat-group="${esc(x.label)}" aria-pressed="${(view === "ideas" ? category : governanceCategory) === x.label}"` : ""}><span>${esc(x.label)}</span><strong>${x.count}</strong><span class="board-stat-track" aria-hidden="true"><i style="width:${(100 * x.count) / max}%"></i></span></${select ? "button" : "div"}>`).join("")}</div>`;
+  section.innerHTML = `<div class="stats-heading"><h1>${title === "Ideas" ? "Idea board" : title}</h1><div class="stats-totals"><strong>${items.length}</strong> ${title.toLowerCase()} <span>·</span> <strong>${authorCount}</strong> contributors</div>${view === "ideas" ? '<span class="stats-origin">Discord ideas + member posts</span>' : '<span class="stats-origin">Shared community records</span>'}</div><div class="board-stat-bars">${counts.map((x) => `<${select ? "button" : "div"} class="board-stat-bar" ${select ? `type="button" data-stat-group="${esc(x.label)}" aria-pressed="${(view === "ideas" ? category : governanceCategory) === x.label}"` : ""}><span>${esc(x.label)}</span><strong>${x.count}</strong><span class="board-stat-track" aria-hidden="true"><i style="width:${(100 * x.count) / max}%"></i></span></${select ? "button" : "div"}>`).join("")}</div>`;
   if (view === "ideas") $("#main").prepend(section);
   else {
     const head = $("#main .board-head") || $("#main .hero");

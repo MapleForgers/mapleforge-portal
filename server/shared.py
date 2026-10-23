@@ -1,5 +1,5 @@
 """Transactional shared boards. Identity always comes from the authenticated session."""
-import json, time, secrets, math, os
+import json, time, secrets, math, os, re, hashlib
 from pathlib import Path
 from datetime import datetime, timezone
 IDEA_CATEGORIES={'Community & care','Work & careers','Climate & resources','Business & technology'}
@@ -16,6 +16,7 @@ def init(c):
     CREATE TABLE IF NOT EXISTS member_locations(uid TEXT PRIMARY KEY,lat REAL NOT NULL,lng REAL NOT NULL,label TEXT NOT NULL,flags TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS pending_map_activity(uid TEXT PRIMARY KEY,action TEXT NOT NULL,due REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS member_details(uid TEXT PRIMARY KEY,payload TEXT NOT NULL,updated REAL NOT NULL);
+    CREATE TABLE IF NOT EXISTS discord_import_authors(message_id TEXT PRIMARY KEY,uid TEXT NOT NULL,channel_id TEXT NOT NULL,verified_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS discord_consent(uid TEXT PRIMARY KEY,version TEXT NOT NULL,existing INTEGER NOT NULL,future INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS discord_consent_history(id INTEGER PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,version TEXT NOT NULL,existing INTEGER NOT NULL,future INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS preferences(uid TEXT PRIMARY KEY,payload TEXT NOT NULL);
@@ -37,7 +38,10 @@ def queue_map_activity(c,uid,action):
     c.execute('INSERT INTO pending_map_activity VALUES(?,?,?) ON CONFLICT(uid) DO UPDATE SET action=excluded.action,due=excluded.due',(uid,action,time.time()+120))
 def record(c,kind,id):
     r=c.execute('SELECT * FROM records WHERE id=? AND kind=?',(id,kind)).fetchone()
-    if r:return {**json.loads(r['payload']),'id':r['id'],'uid':r['uid'],'revision':r['revision'],'board':r['kind']}
+    if r:
+        payload=json.loads(r['payload'])
+        if is_imported(r['uid'],payload) and not import_visible(c,payload):raise Problem(404,'Waiting for the contributor’s consent to show this.')
+        return {**payload,'id':r['id'],'uid':r['uid'],'revision':r['revision'],'board':r['kind']}
     if kind=='Ideas':
         p=c.execute('SELECT * FROM posts WHERE id=? AND archived=0',(id,)).fetchone()
         if p:return dict(p)
@@ -54,13 +58,46 @@ def text(data,k,limit=4000,required=False):
     v=data.get(k,'')
     if not isinstance(v,str) or len(v.strip())>limit or (required and not v.strip()):raise Problem(400,'Please check '+k+'.')
     return v.strip()
-def imported_people():
+def source_links(payload):
+    links=[]
+    if isinstance(payload.get('source'),str):links.append(payload['source'])
+    for item in payload.get('sources',[]):
+        if isinstance(item,dict) and isinstance(item.get('url'),str):links.append(item['url'])
+    return links
+
+def is_imported(uid,payload):
+    return uid=='imported' or payload.get('imported') is True or any('discord.com/channels/' in x for x in source_links(payload))
+
+def import_visible(c,payload):
+    links=source_links(payload)
+    if not links:return False
+    for link in links:
+        match=re.fullmatch(r'https://discord.com/channels/1562193716423430334/(\d+)/(\d+)',link)
+        if not match or match[1] not in DISCORD_CHANNELS:return False
+        author=c.execute('SELECT uid,channel_id FROM discord_import_authors WHERE message_id=?',(match[2],)).fetchone()
+        if not author or author['channel_id']!=match[1]:return False
+        # Legacy imports are existing contributions. New importers must mark future ones.
+        if not may_import_discord(c,author['uid'],payload.get('consentPeriod','existing')!='future'):return False
+    return True
+
+WAITING='Waiting for the contributor’s consent to show this.'
+def placeholder(row,payload):
+    categories=IDEA_CATEGORIES if row['kind']=='Ideas' else GOVERNANCE_CATEGORIES if row['kind']=='Governance' else set()
+    result={'id':row['id'],'board':row['kind'],'uid':'','revision':row['revision'],'title':'Contribution awaiting consent','summary':WAITING,'body':WAITING,'description':WAITING,'detail':WAITING,'author':'Contributor','proposer':'Contributor','status':'Awaiting consent','consentHidden':True,'canEdit':False,'discussion':[],'withheldReplyCount':max(0,len(payload.get('discussion',[]))-1)}
+    if payload.get('category') in categories:result['category']=payload['category']
+    return result
+
+def imported_people(c):
     path=Path(os.environ.get('IMPORTED_PEOPLE','/var/lib/mapleforge/imported-people.json'))
     if not path.exists():return []
-    return [{k:v for k,v in p.items() if k not in ('sources','channel','messageId')} | {'sources':[]} for p in json.loads(path.read_text())]
+    people=[]
+    for p in json.loads(path.read_text()):
+        if import_visible(c,p):people.append({k:v for k,v in p.items() if k not in ('sources','channel','messageId')} | {'sources':[]})
+        else:people.append({'id':p['id'],'name':'Contributor awaiting consent','category':'Other','summary':WAITING,'services':'','sources':[],'consentHidden':True})
+    return people
 def clean_record(r):
     if 'discussion' in r:r['discussion']=[{k:v for k,v in m.items() if k in ('author','text','time','role')} for m in r['discussion']]
-    for key in ('source','channel','messageId','attachments'):r.pop(key,None)
+    for key in ('source','sources','channel','messageId','attachments','consentPeriod'):r.pop(key,None)
     return r
 def directory_entries(c,uid):
     entries=[]
@@ -75,7 +112,8 @@ def directory_entries(c,uid):
         entries.append(entry)
     return entries
 
-CONSENT_VERSION='2026-10-22-v1'
+CONSENT_VERSION='2026-10-22-v2'
+DISCORD_CHANNELS={'1562193717484593156':'welcome','1562294200991485982':'company-direction-suggestions','1562298952613888152':'lobby-chat','1562482881186496602':'mapleforge-announcements'}
 def consent_status(c,uid):
     row=c.execute('SELECT * FROM discord_consent WHERE uid=?',(uid,)).fetchone()
     return {'version':CONSENT_VERSION,'answered':bool(row and row['version']==CONSENT_VERSION),'existing':bool(row and row['existing']),'future':bool(row and row['future']),'updated':row['updated'] if row else None}
@@ -89,22 +127,40 @@ def snapshot(c,user,config):
     version=revision(c)
     uid=user['uid'] if user else '';names={r['id']:r['name'] for r in c.execute('SELECT id,name FROM users')}
     records=[]
+    contributor_names={}
     for row in c.execute('SELECT * FROM records'):
         r={**json.loads(row['payload']),'id':row['id'],'uid':row['uid'],'revision':row['revision'],'board':row['kind']}
+        author=names.get(row['uid'],r.get('proposer') or r.get('author'))
+        if author:contributor_names.setdefault(row['kind'],set()).add(author.strip().casefold())
+        if is_imported(row['uid'],r) and not import_visible(c,r):
+            records.append(placeholder(row,r));continue
+        if 'discussion' in r:
+            original=r['discussion'];r['discussion']=[m for m in original if import_visible(c,m)]
+            r['withheldReplyCount']=len(original)-len(r['discussion'])
+            if r['withheldReplyCount']:r.pop('discussionNote',None)
         r=clean_record(r)
         r['author']=names.get(row['uid'],r.get('author','Community'))
         r['canEdit']=bool(user and allowed(r,user,config));records.append(r)
-    relations=[dict(r) for r in c.execute('SELECT * FROM relations') if r['kind'] not in ('saved','follow') or r['uid']==uid]
+    hidden={r['board']+':'+r['id'] for r in records if r.get('consentHidden')}
+    hidden_people={p['id'] for p in imported_people(c) if p.get('consentHidden')}
+    hidden_events={str(r['id']) for r in c.execute('SELECT * FROM activity') if r['uid']=='imported' or r['kind']+':'+r['target'] in hidden or r['target'] in hidden_people}
+    hidden_comments={r['id'] for r in c.execute('SELECT id,target FROM comments') if r['target'] in hidden}
+    def relation_visible(r):
+        return r['target'] not in hidden and r['target'] not in {'People:'+i for i in hidden_people} and r['target'] not in {'Comments:'+i for i in hidden_comments} and r['target'] not in {'Activity:event-'+i for i in hidden_events}
+    for post in c.execute('SELECT uid FROM posts WHERE archived=0'):
+        if names.get(post['uid']):contributor_names.setdefault('Ideas',set()).add(names[post['uid']].strip().casefold())
+    relations=[dict(r) for r in c.execute('SELECT * FROM relations') if (r['kind'] not in ('saved','follow') or r['uid']==uid) and relation_visible(r)]
     for r in relations:r['data']=json.loads(r.pop('payload'));r['name']=names.get(r['uid'],'Member')
-    valid={r['board']+':'+r['id'] for r in records}
+    valid={r['board']+':'+r['id'] for r in records if not r.get('consentHidden')}
     valid.update('Ideas:'+r['id'] for r in c.execute('SELECT id FROM posts WHERE archived=0'))
     comments=[dict(r) for r in c.execute('SELECT comments.*,users.name AS author FROM comments JOIN users ON users.id=uid ORDER BY created') if r['target'] in valid]
     titles={r['id']:r.get('title','Item') for r in records};titles.update({r['id']:r['title'] for r in c.execute('SELECT id,title FROM posts WHERE archived=0')})
     activity=[]
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
+        if str(r['id']) in hidden_events:continue
         activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
-    return {'discordConsent':consent_status(c,uid),'version':version,'importedPeople':imported_people() if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':directory_entries(c,uid) if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
+    return {'boardContributorCounts':{k:len(v) for k,v in contributor_names.items()},'discordConsent':consent_status(c,uid),'version':version,'importedPeople':imported_people(c) if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':directory_entries(c,uid) if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
 def mutate(c,user,data,config):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
     if op=='discord_consent':

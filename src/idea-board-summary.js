@@ -1,12 +1,12 @@
 function ideaDiscussionStats(idea, comments = [], now = Date.now()) {
-  const messages = [...new Map((idea.discussion || []).map(m => [m.id, m])).values()];
+  const messages = [...new Map((idea.discussion || []).map((m, index) => [m.id || index, m])).values()];
   const replies = messages.filter(m => m.role !== 'Original proposal');
   const names = new Set([...replies.map(m => m.author), ...comments.map(c => c.name || c.author || c.uid)].filter(Boolean).map(n => String(n).trim().toLowerCase()));
   const original = messages.find(m => m.role === 'Original proposal');
   const created = original?.time || (idea.created ? new Date(idea.created * 1000).toISOString() : null);
   const days = created ? Math.max(0, Math.floor((now - new Date(created).getTime()) / 86400000)) : null;
   const words = [idea.summary, ...messages.map(m => m.text), ...comments.map(c => c.text || c.body)].filter(Boolean).join(' ').trim().split(/\s+/).filter(Boolean).length;
-  return {imported: replies.length, portal: comments.length, replies: replies.length + comments.length, people: names.size, days: Number.isFinite(days) ? days : null, minutes: Math.max(1, Math.ceil(words / 220)), created};
+  return {imported: replies.length, portal: comments.length, replies: replies.length + comments.length + (idea.withheldReplyCount || 0), people: names.size, days: Number.isFinite(days) ? days : null, minutes: Math.max(1, Math.ceil(words / 220)), created};
 }
 {
   const previous = renderCards;
@@ -23,6 +23,10 @@ function ideaDiscussionStats(idea, comments = [], now = Date.now()) {
       const stats = document.createElement('div');
       stats.className = 'idea-quick-stats';
       stats.innerHTML = `<button class="idea-reply-summary" title="${s.imported} imported replies; ${s.portal} portal comments">${s.replies} <span>${s.replies === 1 ? 'reply' : 'replies'}</span> · ${s.people} <span>${s.people === 1 ? 'person replying' : 'people replying'}</span></button><span>${s.days === null ? '<span>Date unavailable</span>' : s.days === 0 ? '<span>Less than a day old</span>' : `${s.days} <span>${s.days === 1 ? 'day old' : 'days old'}</span>`}</span><span title="Estimated at 220 words per minute, including the proposal and captured discussion">~${s.minutes} <span>min read</span></span>`;
+      if (idea.consentHidden) {
+        stats.innerHTML = `<button class="idea-reply-summary">${s.replies} <span>replies awaiting consent</span></button>`;
+        card.querySelectorAll('button').forEach(button => { if (!button.hasAttribute('data-open')) button.disabled = true; });
+      }
       stats.querySelector('button').onclick = () => openIdea(id);
       const footer = card.querySelector('.card-footer');
       footer.before(stats);
@@ -39,5 +43,16 @@ function ideaDiscussionStats(idea, comments = [], now = Date.now()) {
       const parents = new Set([...grid.querySelectorAll('.card')].map(c => c.parentElement));
       parents.forEach(parent => [...parent.children].filter(c => c.classList.contains('card')).sort((a,b) => Number(b.dataset.replyCount)-Number(a.dataset.replyCount)).forEach(c => parent.append(c)));
     }
+  };
+}
+
+// Hidden imports keep their place on the board without revealing their content.
+{
+  const previousDetail = renderDetail;
+  renderDetail = function () {
+    const idea = find(currentId);
+    if (!idea?.consentHidden) return previousDetail();
+    document.getElementById('detail-content').innerHTML = `<div class="dialog-top"><button class="close" id="detail-close" aria-label="Close idea">×</button></div><h2>Contribution awaiting consent</h2><p>Waiting for the contributor’s consent to show this.</p><p>${Number(idea.withheldReplyCount || 0)} <span>replies awaiting consent</span></p>`;
+    document.getElementById('detail-close').onclick = () => document.getElementById('detail-dialog').close();
   };
 }

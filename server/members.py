@@ -56,7 +56,7 @@ def init():
         shared.init(c)
         c.executescript('CREATE TABLE IF NOT EXISTS content_version(id INTEGER PRIMARY KEY,value INTEGER NOT NULL); INSERT OR IGNORE INTO content_version VALUES(1,0);')
         # Triggers cover all mutations, including bookmarks and administrator imports.
-        for table in ('users','posts','comments','records','relations','preferences','member_details','member_locations','activity'):
+        for table in ('users','posts','comments','records','relations','preferences','member_details','member_locations','activity','discord_consent','discord_import_authors'):
             for action in ('INSERT','UPDATE','DELETE'):
                 c.execute(f'CREATE TRIGGER IF NOT EXISTS version_{table}_{action} AFTER {action} ON {table} BEGIN UPDATE content_version SET value=value+1 WHERE id=1; END')
         if 'details' not in {row['name'] for row in c.execute('PRAGMA table_info(posts)')}:
@@ -167,7 +167,11 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200,{'posts':posts,'profiles':profiles})
         if path=='/api/comments':
             target=parse_qs(urlparse(self.path).query).get('target',[''])[0]
-            with db() as c:rows=[dict(x) for x in c.execute('SELECT comments.*,users.name AS author FROM comments JOIN users ON uid=users.id WHERE target=? ORDER BY created',(target,))]
+            with db() as c:
+                section,_,item=target.partition(':')
+                try:shared.record(c,section,item)
+                except shared.Problem:return self.send(404,{'error':shared.WAITING})
+                rows=[dict(x) for x in c.execute('SELECT comments.*,users.name AS author FROM comments JOIN users ON uid=users.id WHERE target=? ORDER BY created',(target,))]
             return self.send(200,{'comments':rows})
         return self.send(404,{'error':'Not found'})
     def do_POST(self):

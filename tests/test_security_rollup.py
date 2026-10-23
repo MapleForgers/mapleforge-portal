@@ -73,7 +73,7 @@ class MoreRollupTests(SharedTests):
   self.assertEqual(self.req('/api/version')[1]['version'],after)
  def test_private_metadata_is_not_returned(self):
   with m.db() as c:c.execute('INSERT INTO records VALUES(?,?,?,?,1)',('example','Ideas','import',json.dumps({'title':'Example','source':'secret-url','discussion':[{'text':'Allowed text','author':'Example','channel':'private-channel','id':'private-id','attachments':['secret-file']}]})))
-  result=self.req('/api/shared')[1];self.assertIn('Allowed text',json.dumps(result))
+  result=self.req('/api/shared')[1];self.assertNotIn('Allowed text',json.dumps(result))
   for secret in ('secret-url','private-channel','private-id','secret-file'):self.assertNotIn(secret,json.dumps(result))
  def test_duplicate_votes_and_history_cap(self):
   with m.db() as c:

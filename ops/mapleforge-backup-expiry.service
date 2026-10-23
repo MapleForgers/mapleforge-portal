@@ -1,0 +1,10 @@
+[Unit]
+Description=Expire MapleForge recovery backups
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/mapleforge-members/expire_backups.py
+User=root
+ProtectSystem=strict
+ReadWritePaths=/var/backups/mapleforge
+PrivateTmp=yes
+NoNewPrivileges=yes
