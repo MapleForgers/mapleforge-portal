@@ -46,6 +46,12 @@ def imported_owned(c,uid):
 
 def remove(c,uid,data):
     kind=shared.text(data,'kind',40,True);id=shared.text(data,'id',100)
+    if kind=='Contributions':
+        if data.get('confirmation')!='REMOVE':raise shared.Problem(400,'Type REMOVE to confirm removing all your contributions.')
+        for item in owned(c,uid):
+            if item['kind']!='Comments':delete_item(c,item['kind'],item['id'])
+        for row in c.execute('SELECT * FROM comments WHERE uid=?',(uid,)).fetchall():delete_comment(c,row)
+        return
     if kind=='Account':
         if data.get('confirmation')!='DELETE':raise shared.Problem(400,'Type DELETE to confirm removing your portal account.')
         for item in owned(c,uid):

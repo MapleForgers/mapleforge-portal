@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Canoe icon">
+  <path d="M7 38q25 9 50 0-7 12-25 13Q14 50 7 38Z" fill="#bb553e" stroke="#6d3931" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M12 39q20 4 40 0M28 38v-10m8 10V27" fill="none" stroke="#f1c88d" stroke-width="2" stroke-linecap="round"/>
+  <path d="m43 12-9 32m14-34-5 2 4 3" fill="none" stroke="#40605c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 56q10 3 20 0m9 0q10 3 19 0" fill="none" stroke="#77a9b5" stroke-width="2" stroke-linecap="round"/>
+</svg>

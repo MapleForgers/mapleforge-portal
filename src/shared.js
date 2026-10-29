@@ -87,6 +87,9 @@ if (window.MF) {
       .map((r) => r.target.slice(section.length + 1));
   M.hydrate = async () => {
     sharedData = M.account ? await M.api("/api/shared") : { records: [], relations: [], comments: [], activity: [] };
+    // Keep pending imports stored, but omit their placeholders from every view.
+    sharedData.records = (sharedData.records || []).filter(r => !r.consentHidden).map(r => ({...r, withheldReplyCount: 0}));
+    sharedData.importedPeople = (sharedData.importedPeople || []).filter(p => !p.consentHidden);
     M.bookmarkData = sharedData;
     const records = sharedData.records;
     seed.splice(0,seed.length,...records.filter(r=>r.board==='Ideas').map(r=>({...r,proposer:r.proposer||r.author,stage:r.status||'Idea',imported:true})));

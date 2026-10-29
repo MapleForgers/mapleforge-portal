@@ -108,7 +108,7 @@ document.querySelectorAll(".sidebar .brand").forEach((brand) => {
       zone.classList.remove('nav-drop-active');
     });
   });
-  links.forEach(link => {
+  function registerLink(link) {
     const id = link.dataset.view;
     if (Array.isArray(saved.order)) link.classList.remove('nav-group-start');
     const row = document.createElement('div');
@@ -137,6 +137,15 @@ document.querySelectorAll(".sidebar .brand").forEach((brand) => {
       regularZone.classList.remove('nav-drop-active');
     });
     row.append(grip, link); rows.set(id, row);
-  });
+  }
+  links.forEach(registerLink);
+  MF.registerNav=function(link,after='bookmarks'){
+    const id=link.dataset.view;if(rows.has(id))return;
+    links.push(link);ids.push(id);registerLink(link);
+    if(Array.isArray(saved.order)&&saved.order.includes(id))order=[...new Set([...saved.order.filter(x=>ids.includes(x)),...order,id])];
+    else order.splice(Math.max(0,order.indexOf(after)+1),0,id);
+    persist();draw();
+  };
+  MF.removeNav=function(id){rows.get(id)?.remove();rows.delete(id);order=order.filter(x=>x!==id);const i=ids.indexOf(id);if(i>=0)ids.splice(i,1);};
   draw();
 }

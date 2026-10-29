@@ -312,7 +312,7 @@ if (window.MF) {
       const id = row.dataset.commentId;
       if (id)
         addControls(
-          row,
+          row.querySelector(':scope > .rule-comment-actions') || row,
           "Comments:" + id,
           item("Comments:" + id)?.title || "item",
         );

@@ -9,7 +9,7 @@ args=parser.parse_args()
 if args.content_dir:
     parser.error('Private content must be loaded through authenticated server APIs, not a web build.')
 def encode(value):return json.dumps(value,ensure_ascii=False).replace('<', r'\u003c')
-modules=['base','idea-discussions','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','forgers-map','member-details','privacy-controls','discord-consent','sidebar','version','idea-board-summary','responsive-workspace','locale','timezone']
+modules=['base','idea-discussions','community','feature-tools','governance','activity','people','people-explorer','activity-explorer','tasks','section-tabs','members','board-stats','shared','skills-exchange','resource-sharing','community-rules','bookmarks','navigation-history','project-framework','forgers-map','member-details','privacy-controls','discord-consent','sidebar','version','idea-board-summary','responsive-workspace','locale','timezone','rule-voting','rule-comments','rule-forum','feature-forum','portal-notice','chat','proposal-images','post-history','forum-demo','forum-mobile']
 seeds='const governanceSeeds='+encode([])+';\nconst peopleSeeds='+encode([])+';\n'
 commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
@@ -26,4 +26,17 @@ shutil.copytree(ROOT/'public',args.output,dirs_exist_ok=True)
 (args.output/'portal1/index.html').write_text(html)
 shutil.copyfile(ROOT/'public/mapleforge-icon.png',args.output/'portal1/mapleforge-icon.png')
 (args.output/'portal1/version.json').write_text(json.dumps(release))
-print('Built portal at',args.output/'portal1/index.html')
+# Materialize the friendly publication routes used by the navigation.
+publication_pages = {
+    '': 'perspeviera/blackknives/index.html',
+    'blackknives-proposal': 'perspeviera/blackknives/index.html',
+    'relevant-history': 'perspeviera/index.html',
+    'virtual-constitution': 'perspeviera/voting/index.html',
+    'blackknives-survey': 'perspeviera/previews/7631821a03a914519d64/blackknives/index.html',
+    'mandd-survey': 'perspeviera/previews/7631821a03a914519d64/mandd/index.html',
+}
+for route, source in publication_pages.items():
+    destination = args.output/'publications'/route
+    destination.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT/'public'/source, destination/'index.html')
+print('Built portal at' ,args.output/'portal1/index.html')

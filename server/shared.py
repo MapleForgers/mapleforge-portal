@@ -3,7 +3,7 @@ import json, time, secrets, math, os, re, hashlib
 from pathlib import Path
 from datetime import datetime, timezone
 IDEA_CATEGORIES={'Community & care','Work & careers','Climate & resources','Business & technology'}
-GOVERNANCE_CATEGORIES={'Decision-making','Roles & teams','Project process','Ownership & credit','Offers to help'}
+GOVERNANCE_CATEGORIES={'Proposals','Projects','Rules','Structure','Agreements','Decision-making','Roles & teams','Project process','Ownership & credit','Offers to help'}
 KINDS={'Ideas','Features','Tasks','Governance','Skills exchange','Resource sharing','Framework'}
 class Problem(Exception):
     def __init__(self,status,message):self.status=status;self.message=message
@@ -152,18 +152,24 @@ def snapshot(c,user,config):
     for post in c.execute('SELECT uid FROM posts WHERE archived=0'):
         if names.get(post['uid']):contributor_names.setdefault('Ideas',set()).add(names[post['uid']].strip().casefold())
     relations=[dict(r) for r in c.execute('SELECT * FROM relations') if (r['kind'] not in ('saved','follow') or r['uid']==uid) and relation_visible(r)]
-    for r in relations:r['data']=json.loads(r.pop('payload'));r['name']=names.get(r['uid'],'Member')
+    for r in relations:
+        r['data']=json.loads(r.pop('payload'));r['name']=names.get(r['uid'],'Member')
+        if r['kind']=='ballot' and r['data'].get('visibility')=='private':
+            r['name']='Hidden voter'
+            if r['uid']!=uid:r['uid']=None
     valid={r['board']+':'+r['id'] for r in records if not r.get('consentHidden')}
     valid.update('Ideas:'+r['id'] for r in c.execute('SELECT id FROM posts WHERE archived=0'))
     comments=[dict(r) for r in c.execute('SELECT comments.*,users.name AS author FROM comments JOIN users ON users.id=uid ORDER BY created') if r['target'] in valid]
+    import discussions
+    comments=discussions.enrich(c,comments)
     titles={r['id']:r.get('title','Item') for r in records};titles.update({r['id']:r['title'] for r in c.execute('SELECT id,title FROM posts WHERE archived=0')})
     activity=[]
     for r in c.execute('SELECT * FROM activity ORDER BY id DESC LIMIT 2000'):
         if str(r['id']) in hidden_events:continue
-        activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':names.get(r['uid'],'Member'),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
+        activity.append({'id':'event-'+str(r['id']),'date':datetime.fromtimestamp(r['created'],timezone.utc).isoformat(),'actor':('Hidden voter' if r['uid']=='hidden-voter' else names.get(r['uid'],'Member')),'type':r['type'],'section':r['kind'],'target':r['target'],'title':titles.get(r['target'],names.get(r['target'],'Community')),'action':r['action'],'detail':r['detail']})
     p=c.execute('SELECT payload FROM preferences WHERE uid=?',(uid,)).fetchone()
     return {'boardContributorCounts':{k:len(v) for k,v in contributor_names.items()},'discordConsent':consent_status(c,uid),'version':version,'importedPeople':imported_people(c) if user else [],'records':records,'relations':relations,'comments':comments,'activity':activity,'memberDetails':directory_entries(c,uid) if user else [],'mapPins':[dict(r,flags=json.loads(r['flags'])) for r in c.execute('SELECT member_locations.*,users.name AS name FROM member_locations JOIN users ON users.id=uid')] if user else [],'preferences':json.loads(p[0]) if p else None,'admin':uid in config.get('admin_ids',[])}
-def mutate(c,user,data,config):
+def mutate(c,user,data,config,allow_empty_body=False):
     uid=user['uid'];op=text(data,'op',40,True);kind=text(data,'kind',30);id=text(data,'id',100)
     if op=='discord_consent':
         if data.get('version')!=CONSENT_VERSION:raise Problem(409,'The consent notice changed. Refresh and review it again.')
@@ -247,6 +253,26 @@ def mutate(c,user,data,config):
         else:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,relation,kind+':'+id))
         return {}
     if kind not in KINDS:raise Problem(400,'Unknown board.')
+    if op=='ballot':
+        if kind not in ('Governance','Features'):raise Problem(400,'Ballots are for portal proposals.')
+        if kind=='Features':id=canonical(c,id)
+        r=record(c,kind,id)
+        if data.get('revision')!=r['revision']:raise Problem(409,'This proposal changed. Read it again before voting.')
+        choice=data.get('choice')
+        if choice not in ('agree','disagree','abstain','remove'):raise Problem(400,'Choose agree, disagree or abstain.')
+        visibility=data.get('visibility','public')
+        if visibility!='public' and choice!='remove':raise Problem(400,'Private voting is paused. Refresh the page to cast a regular vote.')
+        target=kind+':'+id
+        previous=c.execute("SELECT payload FROM relations WHERE uid=? AND kind='ballot' AND target=?",(uid,target)).fetchone()
+        was_private=bool(previous and json.loads(previous['payload']).get('visibility')=='private')
+        if kind=='Features':
+            # Replace legacy support with the member's single new ballot across duplicate links.
+            for feature in c.execute("SELECT id FROM records WHERE kind='Features'").fetchall():
+                if canonical(c,feature['id'])==id:c.execute("DELETE FROM relations WHERE uid=? AND kind='vote' AND target=?",(uid,'Features:'+feature['id']))
+        if choice=='remove':c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,'ballot',target))
+        else:c.execute('INSERT INTO relations VALUES(?,?,?,?) ON CONFLICT(uid,kind,target) DO UPDATE SET payload=excluded.payload',(uid,'ballot',target,json.dumps({'choice':choice,'revision':r['revision'],'visibility':visibility})))
+        event(c,'hidden-voter' if visibility=='private' or was_private else uid,kind,id,'Votes','withdrew their vote' if choice=='remove' else 'updated their vote')
+        return {}
     if op=='save':
         if kind in ('Ideas','Framework'):raise Problem(400,'Use the corresponding idea or framework page.')
         old=record(c,kind,id) if id else None
@@ -254,7 +280,7 @@ def mutate(c,user,data,config):
         if old and data.get('revision')!=old['revision']:raise Problem(409,'Someone updated this item. Refresh it before saving your changes.')
         f=data.get('fields',{})
         if not isinstance(f,dict):raise Problem(400,'Invalid fields.')
-        p={**(old or {}),'title':text(f,'title',160,True)}
+        p={**(old or {}),'title':text(f,'title',160,not allow_empty_body) or 'Picture post'}
         if kind=='Tasks':
             for k,limit in [('description',4000),('type',80),('priority',30),('status',40),('assignee',100),('due',10),('followUp',10)]:p[k]=text(f,k,limit,k in ('description','type','priority','status'))
             if p['status'] not in ['To do','In progress','Needs review','Blocked','Done'] or p['priority'] not in ['Urgent','High','Normal','Low']:raise Problem(400,'Invalid task status or priority.')
@@ -267,11 +293,12 @@ def mutate(c,user,data,config):
             for k,limit in [('body',4000),('category',80),('type',30),('availability',200),('location',160),('terms',30),('status',30)]:p[k]=text(f,k,limit,k in ('body','category','type','terms','status'))
             if p['type'] not in ['Offer','Request'] or p['terms'] not in (['Discuss together','Volunteer','Paid','Skill swap'] if kind=='Skills exchange' else ['Discuss together','Free to use','Rental','Swap']) or p['status'] not in ['Open','Paused','Completed']:raise Problem(400,'Invalid listing type, terms or status.')
         elif kind=='Features':
-            for k,limit in [('body',4000),('kind',30),('area',100),('audience',100)]:p[k]=text(f,k,limit,k in ('body','kind','area'))
+            for k,limit in [('body',4000),('kind',30),('area',100),('audience',100)]:p[k]=text(f,k,limit,k in ('kind','area') or (k=='body' and not allow_empty_body))
             p.setdefault('status','Open');p.setdefault('tags',[]);p.setdefault('group','');p.setdefault('history',[]);p['scope']='Shared community request'
         else:
-            p['summary']=text(f,'summary',4000,True);p['category']=text(f,'category',80,True);p.setdefault('status','For discussion')
+            p['summary']=text(f,'summary',4000,not allow_empty_body);p['category']=text(f,'category',80,True);p.setdefault('status','For discussion')
             if p['category'] not in GOVERNANCE_CATEGORIES:raise Problem(400,'Choose a governance category.')
+        if old and kind=='Governance':c.execute("DELETE FROM relations WHERE kind IN ('ballot','vote') AND target=?",('Governance:'+id,))
         p.setdefault('created',now());id=id or 'shared-'+secrets.token_hex(12)
         for key in ('id','uid','revision','canEdit'):p.pop(key,None)
         c.execute('INSERT INTO records(id,kind,uid,payload) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,revision=records.revision+1',(id,kind,uid,json.dumps(p)))
@@ -281,7 +308,7 @@ def mutate(c,user,data,config):
         relation=text(data,'relation',30,True);enabled=data.get('enabled')
         if type(enabled) is not bool or relation not in ('vote','join','follow'):raise Problem(400,'Invalid action.')
         if relation=='join' and kind!='Ideas':raise Problem(400,'Join is for ideas.')
-        target=kind+':'+id;payload={}
+        target=kind+':'+id;payload={};private_previous=False
         if relation=='vote' and kind=='Features':
             links={x['id']:json.loads(x['payload']).get('duplicateOf') for x in c.execute("SELECT id,payload FROM records WHERE kind='Features'")}
             roots={}
@@ -298,10 +325,13 @@ def mutate(c,user,data,config):
             root=root_of(id);family=[key for key in links if root_of(key)==root]
             for fid in family:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,'vote','Features:'+fid))
             target='Features:'+root
+            previous=c.execute("SELECT payload FROM relations WHERE uid=? AND kind='ballot' AND target=?",(uid,target)).fetchone()
+            private_previous=bool(previous and json.loads(previous['payload']).get('visibility')=='private')
+            c.execute("DELETE FROM relations WHERE uid=? AND kind='ballot' AND target=?",(uid,target))
         if relation=='join':payload={'role':text(data,'role',100) or 'Joined the discussion','capacity':text(data,'capacity',100)}
         if enabled:c.execute('INSERT INTO relations VALUES(?,?,?,?) ON CONFLICT(uid,kind,target) DO UPDATE SET payload=excluded.payload',(uid,relation,target,json.dumps(payload)))
         else:c.execute('DELETE FROM relations WHERE uid=? AND kind=? AND target=?',(uid,relation,target))
-        if relation!='follow':event(c,uid,kind,id,{'vote':'Votes','join':'Membership'}[relation],('added support' if enabled else 'withdrew support') if relation=='vote' else ('joined or updated their contribution' if enabled else 'left the idea'))
+        if relation!='follow':event(c,'hidden-voter' if private_previous else uid,kind,id,{'vote':'Votes','join':'Membership'}[relation],('added support' if enabled else 'withdrew support') if relation=='vote' else ('joined or updated their contribution' if enabled else 'left the idea'))
         return {}
     if op=='status':
         if not allowed(r,user,config) and not(kind=='Tasks' and r.get('assignee')==uid):raise Problem(403,'Only the author, assigned member, or a maintainer can change this status.')

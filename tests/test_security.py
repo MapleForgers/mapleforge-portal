@@ -9,6 +9,9 @@ tmp=tempfile.TemporaryDirectory()
 os.environ['MEMBER_CONFIG']=tmp.name+'/config.json'
 os.environ['MEMBER_DB']=tmp.name+'/db.sqlite'
 Path(os.environ['MEMBER_CONFIG']).write_text('{"guild_id":"test","admin_ids":[]}')
+from cryptography.fernet import Fernet
+os.environ['MEMBER_SESSION_KEY']=tmp.name+'/session.key'
+Path(os.environ['MEMBER_SESSION_KEY']).write_bytes(Fernet.generate_key())
 import members as m
 m.init()
 class SharedTests(unittest.TestCase):

@@ -1,0 +1,92 @@
+/* MapleForge's own default theme. Other personal themes retain their styling. */
+body[data-theme="forest"] {
+  --surface-page:#f8f6ef; --surface-card:#fffef9; --surface-subtle:#e8efe6;
+  --text-primary:#173d3b; --text-secondary:#52685e; --border-default:#cdd9cf;
+  --action-primary:#335d50; --text-on-action:#fff; --component-radius:9px;
+  --ink:var(--text-primary); --muted:var(--text-secondary); --paper:var(--surface-page);
+  --white:var(--surface-card); --card:var(--surface-card); --soft:var(--surface-subtle);
+  --sage:var(--surface-subtle); --line:var(--border-default); --header:#edf2e8;
+  --sidebar:#173d3b; --accent:#bb553e; --orange:#bb553e;
+  --bg:var(--surface-card); --panel:#edf2e9; --strip:#e0ebdf; --link:#335d50; --input:#fffef9;
+  color:var(--text-primary);
+  background:var(--surface-page) url('/art/mapleforge/mapleforge-pattern.svg') repeat;
+  background-size:440px 440px;
+}
+body[data-theme="forest"] .sidebar {
+  background:linear-gradient(#173d3bf5,#173d3bed),url('/art/mapleforge/mapleforge-panorama.svg') center bottom / auto 320px no-repeat;
+  border-right:1px solid #31574b;
+  box-shadow:3px 0 16px #173c2b0d;
+}
+body[data-theme="forest"] .sidebar .nav button.active {
+  background:#e7eee2!important;color:#173d3b!important;
+  box-shadow:inset 3px 0 #d66642;
+}
+body[data-theme="forest"] .sidebar .nav button:hover:not(.active){background:#31574b}
+body[data-theme="forest"] .sidebar .portal-notice-link{border-color:#77998a;border-radius:7px;background:#ffffff08}
+body[data-theme="forest"] .section-tabs {
+  border-bottom:1px solid var(--border-default);
+  background:linear-gradient(90deg,#f8f6ef 64%,#f8f6ef2b),url('/art/mapleforge/mapleforge-panorama.svg') right 62% / 400px auto no-repeat!important;
+}
+body[data-theme="forest"] .section-tabs .section-tab.selected{background:#dfeadd!important;border:1px solid #c4d5c6!important}
+body[data-theme="forest"] .section-tabs .portal-version{background:#f8f6efdc;border-radius:5px;padding:3px 6px}
+body[data-theme="forest"] #main :is(.rules-forum,.features-forum){
+  --forum-link:#335d50; --forum-strip:#e0ebdf; --forum-ink:#173d3b;
+  background:var(--surface-card);border:1px solid var(--border-default);border-radius:10px;padding:16px;
+  box-shadow:0 3px 14px #29453208;
+}
+body[data-theme="forest"] #governance-detail{--forum-link:#335d50;--forum-strip:#e0ebdf;--forum-ink:#173d3b}
+body[data-theme="forest"] #main .rules-heading {
+  border-radius:7px;border-bottom:3px solid #c37345;
+  background:linear-gradient(90deg,#e0ebdf 62%,#e0ebdf70),url('/art/mapleforge/mapleforge-panorama.svg') right 62% / 380px auto no-repeat;
+}
+body[data-theme="forest"] #main :is(.rules-baseline,.rules-notice){background:#f2f5ed;border-radius:7px;color:var(--text-primary);border:1px solid #dce5d7}
+body[data-theme="forest"] #main .rules-notice{border-left:3px solid #6a9482}
+body[data-theme="forest"] #main :is(.rules-row,.request-item){border-color:var(--border-default)}
+body[data-theme="forest"] #main :is(.rule-category,.filter-chip,.tag){border-radius:5px}
+body[data-theme="forest"] #main :is(.post-history-panel,.feature-inline){background:#edf2e9;border-color:var(--border-default)}
+body[data-theme="forest"] #main :is(.card,.panel,.task-card,.resource-card){border-color:var(--border-default);box-shadow:0 2px 8px #29453208}
+body[data-theme="forest"] #main :is(.community-banner,.phase-banner){background:#e5eee1;border:1px solid #cbdcc9;border-radius:10px}
+body[data-theme="forest"] .irc-room{box-shadow:0 3px 14px #2945320a}
+body[data-theme="forest"] .irc-channel-top{background:#e0ebdf;border-bottom:2px solid #8caa91}
+body[data-theme="forest"] .irc-log{background:var(--surface-card)}
+body[data-theme="forest"] .irc-users{background:linear-gradient(#edf2e9e8,#edf2e9ee),url('/art/mapleforge/mapleforge-pattern.svg') center / 300px}
+body[data-theme="forest"] :is(.portal-notice,.entry-right){color:var(--text-primary);background:var(--surface-page) url('/art/mapleforge/mapleforge-pattern.svg') center / 440px}
+body[data-theme="forest"] .portal-notice-content{background:var(--surface-card);border-radius:12px;border-top:5px solid #bb553e;box-shadow:0 12px 40px #29453212}
+body[data-theme="forest"] .portal-notice-content::before{content:"";display:block;height:100px;margin:-10px -10px 24px;border-radius:7px;background:url('/art/mapleforge/mapleforge-panorama.svg') center 64% / cover no-repeat}
+body[data-theme="forest"] .portal-notice :is(h1,h2){color:var(--text-primary)}
+body[data-theme="forest"] .portal-notice button{background:var(--action-primary)}
+body[data-theme="forest"] .entry-left{background:linear-gradient(#173d3bf5 40%,#173d3b60),url('/art/mapleforge/mapleforge-panorama.svg') center bottom / auto 55% no-repeat,#173d3b}
+/* The standalone demo and trial use the same palette and compact landscape. */
+html:has(body[data-theme="forest"]>.site-header){background:#e7ede3 url('/art/mapleforge/mapleforge-pattern.svg') repeat center / 440px}
+body[data-theme="forest"]:has(>.site-header){background:var(--surface-card);border-color:#c9d6c8;box-shadow:0 10px 35px #29453214}
+body[data-theme="forest"] .site-header{background:#e0ebdf}
+body[data-theme="forest"] .masthead{
+  background:linear-gradient(90deg,#e0ebdf 52%,#e0ebdf35),url('/art/mapleforge/mapleforge-panorama.svg') right 62% / 540px auto no-repeat;
+  min-height:104px;border-bottom:1px solid #cadbc7;
+}
+body[data-theme="forest"] .masthead .preferences{background:#fffef9d9;padding:6px 9px;border-radius:7px}
+body[data-theme="forest"] .utility{background:#f0f4e9;border-color:var(--line)}
+body[data-theme="forest"] .header-governance{background:#edf2e9;padding-top:14px}
+body[data-theme="forest"] #categories{background:#e0ebdf;border-color:#bfcfbc}
+body[data-theme="forest"] #categories button[aria-pressed=true]{background:var(--surface-card);border-color:#bfcfbc;color:#a7412d}
+body[data-theme="forest"] .community-sidebar>section h2{border-radius:5px;border-left:3px solid #c37345;background:#e0ebdf}
+body[data-theme="forest"] .primary{background:#335d50;color:#fff;border-color:#335d50;border-radius:7px}
+body[data-theme="forest"] :is(input,select,textarea){accent-color:#335d50}
+body[data-theme="forest"] .demo-banner{background:#f5f1e5}
+body[data-theme="forest"] .demo-banner>strong{background:#9b492e;color:#fff;border-radius:4px}
+body[data-theme="forest"] .post:hover{background:#f5f7ef}
+body[data-theme="forest"] .community-sidebar .about::before{content:"";display:block;height:90px;background:url('/art/mapleforge/objects.svg') center / contain no-repeat;margin-bottom:10px}
+body.mf-landing[data-theme="forest"] main{background:transparent}
+body.mf-landing[data-theme="forest"] .community{border:1px solid #d5dece;border-radius:16px;box-shadow:0 15px 40px #29453214}
+@media(max-width:900px){
+ body[data-theme="forest"] .section-tabs{background:linear-gradient(90deg,#f8f6ef 48%,#f8f6ef90),url('/art/mapleforge/mapleforge-panorama.svg') right 60% / 260px auto no-repeat!important}
+ body[data-theme="forest"] #main :is(.rules-forum,.features-forum){padding:10px;border-radius:8px}
+ body[data-theme="forest"] #main .rules-heading{background:var(--forum-strip)}
+ body[data-theme="forest"] .portal-notice-content::before{height:70px;margin:0 0 18px}
+}
+@media(max-width:800px){
+ body[data-theme="forest"] .masthead{background:linear-gradient(90deg,#e0ebdf 35%,#e0ebdf45),url('/art/mapleforge/mapleforge-panorama.svg') right top / auto 120px no-repeat;min-height:0}
+ body[data-theme="forest"] .masthead-title,body[data-theme="forest"] .masthead .brand{position:relative;background:#e0ebdfcf;border-radius:4px}
+ body[data-theme="forest"] .masthead .preferences{background:#f8faefee}
+ body[data-theme="forest"] .community-sidebar .about::before{height:70px}
+}

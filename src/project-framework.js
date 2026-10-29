@@ -103,6 +103,10 @@
     "How do we decide to continue, pause or stop? What lessons should every project share?",
   ];
   function renderFramework() {
+    if (!window.MF?.framework) {
+      $("#main").innerHTML = '<section class="framework-page"><h1>Project Framework</h1><p>No framework has been added to the portal.</p></section>';
+      return;
+    }
     const phase = phases[selectedPhase];
     const name = phase ? phase[0] : "The whole framework";
     const target =

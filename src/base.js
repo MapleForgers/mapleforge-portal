@@ -197,6 +197,8 @@ function renderCards() {
         (state.comments[b.id] || []).length -
         (state.comments[a.id] || []).length,
     );
+  // Keep contributions awaiting permission after visible ideas in every sort mode.
+  list.sort((a, b) => Number(!!a.consentHidden) - Number(!!b.consentHidden));
   $("#cards").innerHTML = list.length
     ? list
         .map(

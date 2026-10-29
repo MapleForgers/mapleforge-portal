@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="240" viewBox="0 0 1600 240" role="img" aria-label="Canadian lake, boreal trees and canoe panorama">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f8f6ef"/><stop offset="1" stop-color="#e8f0ec"/></linearGradient>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#c6dfdf"/><stop offset="1" stop-color="#76acb5"/></linearGradient>
+    <linearGradient id="rock" x2="0" y2="1"><stop stop-color="#9aa9a1"/><stop offset="1" stop-color="#637d78"/></linearGradient>
+    <path id="pine" d="M0 0v-73m-27 55 27-46 27 46H-27m7-18L0-81l20 45H-20" fill="none" stroke="#335d50" stroke-width="3" stroke-linejoin="round"/>
+    <path id="fir" d="M0 0v-95m-25 68 25-75 25 75H-25m-18 15 18-39M43-12 25-51" fill="none" stroke="#285148" stroke-width="3" stroke-linejoin="round"/>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v240H0z"/>
+  <circle cx="1350" cy="49" r="32" fill="#f2d49a" opacity=".78"/>
+  <path d="M0 130 88 104l83 18 73-38 88 35 108-25 95 38 200-9 120 5 130-8 160 11 91-33 83 25 81-41 95 37 105-26v147H0Z" fill="#d7e4de"/>
+  <path d="m0 148 96-16 88 9 103-19 108 16 85-5 92 12 109-7 158 10 150-15 93 9 127-21 90 18 113-25 79 16 109-15v125H0Z" fill="#abc9c6"/>
+  <path d="M0 172q117-15 243 1t237 0q169-13 327-2t281-2q160-18 278 0t234-2v73H0Z" fill="url(#water)"/>
+  <g stroke="#edf6f1" stroke-width="2" fill="none" opacity=".8">
+    <path d="M350 192q96 8 189 0m65 10q79 6 167 0m142-7q91 6 177 0m96 15q57 5 135 0M233 222q75 5 144 0m958-20q66 5 122 0"/>
+  </g>
+  <path d="M0 152q40-3 71 10l24 19 39-10 40 10-15 59H0Z" fill="url(#rock)"/>
+  <path d="M0 167q45-3 78 14l45 7 35-11M5 210l62-12 27 19" fill="none" stroke="#d0d9cc" stroke-width="2" opacity=".72"/>
+  <g opacity=".91"><use href="#fir" x="48" y="160"/><use href="#pine" x="102" y="166"/><use href="#pine" x="137" y="176" transform="translate(137 176) scale(.72) translate(-137 -176)"/><use href="#fir" x="199" y="170"/></g>
+  <path d="m1427 174 48-30 48 22 77-17v91h-192l-20-44z" fill="url(#rock)"/>
+  <path d="m1402 198 74-29 49 13 75-19m-147 57 78-16 69 2" fill="none" stroke="#d2d9cd" stroke-width="2" opacity=".65"/>
+  <g opacity=".93"><use href="#pine" x="1415" y="175"/><use href="#fir" x="1476" y="162"/><use href="#pine" x="1534" y="173"/><use href="#fir" x="1584" y="160"/></g>
+  <path d="M1119 184q47 13 104 0-16 17-50 19-34-2-54-19Z" fill="#ad4f3b" stroke="#713c34" stroke-width="2"/>
+  <path d="M1138 187q38 8 68 0" fill="none" stroke="#e0a36f" stroke-width="2"/>
+  <path d="M1167 178v-38m-14 8 14-8 15 8" fill="none" stroke="#805747" stroke-width="2" stroke-linecap="round"/>
+  <path d="M1188 182q14 2 28 0m-81 28q41 4 89-1" fill="none" stroke="#dceeee" stroke-width="2" opacity=".7"/>
+  <path d="m313 78 7 3 5-3m960 24 7 3 5-3" fill="none" stroke="#587a76" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+</svg>

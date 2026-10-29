@@ -1,4 +1,8 @@
-"""MapleForge member identity and shared community content. Standard library only."""
+import post_history
+import proposal_images
+import chat
+import discussions
+"""MapleForge member identity and shared community content. Encrypted, restart-safe sessions."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http.cookies import SimpleCookie
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -7,11 +11,19 @@ from urllib.error import HTTPError
 from pathlib import Path
 import os, json, sqlite3, secrets, hashlib, time, threading, unicodedata
 import shared, privacy
+from cryptography.fernet import Fernet, InvalidToken
 from collections import deque
 
 ORIGIN='https://maple-forge.ca'
 CONFIG=json.loads(Path(os.environ.get('MEMBER_CONFIG','/etc/mapleforge/discord.json')).read_text())
-# OAuth access tokens stay in process memory only. Restart requires fresh sign-in.
+# Access tokens are encrypted at rest. Refresh tokens are never retained.
+def session_cipher():
+    return Fernet(Path(os.environ.get("MEMBER_SESSION_KEY","/etc/mapleforge/session.key")).read_bytes().strip())
+def persist_proof(key,proof):
+    encrypted=session_cipher().encrypt(proof["access"].encode()).decode()
+    with db() as c:
+        c.execute("DELETE FROM session_proofs WHERE expires<=? OR token NOT IN (SELECT token FROM sessions)",(time.time(),))
+        c.execute("INSERT OR REPLACE INTO session_proofs VALUES(?,?,?)",(key,encrypted,proof["expires"]))
 MEMBERSHIP = {}
 MEMBERSHIP_LOCK = threading.Lock()
 MEMBERSHIP_TTL = 300
@@ -48,12 +60,18 @@ def init():
         c.executescript('''PRAGMA journal_mode=WAL;
         CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,username TEXT NOT NULL,name TEXT NOT NULL,profile TEXT NOT NULL DEFAULT '{}');
         CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,uid TEXT,csrf TEXT,expires REAL);
+        CREATE TABLE IF NOT EXISTS session_proofs(token TEXT PRIMARY KEY,access TEXT NOT NULL,expires REAL NOT NULL);
+        CREATE TRIGGER IF NOT EXISTS remove_session_proof AFTER DELETE ON sessions BEGIN DELETE FROM session_proofs WHERE token=OLD.token; END;
         CREATE TABLE IF NOT EXISTS oauth(state TEXT PRIMARY KEY,browser TEXT,expires REAL);
         CREATE TABLE IF NOT EXISTS posts(id TEXT PRIMARY KEY,uid TEXT,title TEXT,body TEXT,category TEXT,created REAL);
         CREATE TABLE IF NOT EXISTS comments(id TEXT PRIMARY KEY,uid TEXT,target TEXT,body TEXT,created REAL);
         ''')
         c.executescript('CREATE INDEX IF NOT EXISTS comments_target ON comments(target); CREATE INDEX IF NOT EXISTS comments_uid_created ON comments(uid,created);')
+        c.execute("DELETE FROM session_proofs WHERE expires<=? OR token NOT IN (SELECT token FROM sessions)",(time.time(),))
         shared.init(c)
+        discussions.init(c)
+        post_history.init(c)
+        proposal_images.init(c)
         c.executescript('CREATE TABLE IF NOT EXISTS content_version(id INTEGER PRIMARY KEY,value INTEGER NOT NULL); INSERT OR IGNORE INTO content_version VALUES(1,0);')
         # Triggers cover all mutations, including bookmarks and administrator imports.
         for table in ('users','posts','comments','records','relations','preferences','member_details','member_locations','activity','discord_consent','discord_import_authors'):
@@ -88,6 +106,13 @@ class Handler(BaseHTTPRequestHandler):
         with MEMBERSHIP_LOCK:
             proof=MEMBERSHIP.get(key)
             proof=dict(proof) if proof else None
+        if not proof:
+            with db() as c:stored=c.execute('SELECT * FROM session_proofs WHERE token=? AND expires>?',(key,time.time())).fetchone()
+            if stored:
+                try:proof={'access':session_cipher().decrypt(stored['access'].encode()).decode(),'checked':0,'expires':stored['expires']}
+                except InvalidToken:proof=None
+                if proof:
+                    with MEMBERSHIP_LOCK:MEMBERSHIP[key]=proof
         if proof and proof['expires']>time.time():
             if time.time()-proof['checked']<MEMBERSHIP_TTL:return user
             try:
@@ -117,7 +142,7 @@ class Handler(BaseHTTPRequestHandler):
             with db() as c:
                 c.execute('DELETE FROM oauth WHERE expires<?',(time.time(),))
                 c.execute('INSERT INTO oauth VALUES(?,?,?)',(digest(state),digest(browser),time.time()+600))
-            url='https://discord.com/oauth2/authorize?'+urlencode({'client_id':CONFIG['client_id'],'redirect_uri':CONFIG['redirect_uri'],'response_type':'code','scope':'identify guilds.members.read','state':state})
+            url='https://discord.com/oauth2/authorize?'+urlencode({'client_id':CONFIG['client_id'],'redirect_uri':CONFIG['redirect_uri'],'response_type':'code','scope':'identify guilds.members.read','state':state,'prompt':'none'})
             return self.send(303,headers={'Location':url,'Set-Cookie':'mapleforge_oauth='+browser+'; Path=/auth/; Max-Age=600; Secure; HttpOnly; SameSite=Lax'})
         if path=='/auth/discord/callback':
             q=parse_qs(urlparse(self.path).query);state=q.get('state',[''])[0]
@@ -134,7 +159,7 @@ class Handler(BaseHTTPRequestHandler):
                 if e.code in (403,404):return self.signin_failed('membership')
                 raise
             if member.get('pending'):return self.signin_failed('screening')
-            # Retain only the access token in memory for periodic membership checks; never the refresh token.
+            # Retain the access token encrypted for membership checks; never the refresh token.
             name=member.get('nick') or u.get('global_name') or u['username'];token=secrets.token_urlsafe(32);csrf=secrets.token_urlsafe(32)
             with db() as c:
                 c.execute('BEGIN IMMEDIATE')
@@ -147,8 +172,29 @@ class Handler(BaseHTTPRequestHandler):
                 for key in list(MEMBERSHIP):
                     if MEMBERSHIP[key]['expires']<=time.time():MEMBERSHIP.pop(key,None)
                 MEMBERSHIP[digest(token)]={'access':access,'checked':time.time(),'expires':time.time()+min(86400,int(tokens.get('expires_in',86400)))}
+            persist_proof(digest(token),MEMBERSHIP[digest(token)])
             return self.send(303,headers={'Location':'/portal1/','Set-Cookie':'__Host-mapleforge_member='+token+'; Path=/; Max-Age=86400; Secure; HttpOnly; SameSite=Lax'})
         user=self.session()
+        if path.startswith('/api/media/'):
+            try:
+                with db() as c:return discussions.send_media(self,discussions.media(c,user,path.rsplit('/',1)[-1]))
+            except shared.Problem as e:return self.send(e.status,{'error':e.message})
+        if path.startswith('/api/chat-media/'):
+            try:return discussions.send_media(self,chat.media(user,path.rsplit('/',1)[-1]))
+            except shared.Problem as e:return self.send(e.status,{'error':e.message})
+        if path=='/api/chat':
+            if not user:return self.send(401,{'error':'Sign in with Discord to read chat.'})
+            return self.send(200,chat.read(user['uid']))
+        if path.startswith('/api/proposal-images/'):
+            try:
+                with db() as c:return discussions.send_media(self,proposal_images.media(c,user,path.rsplit('/',1)[-1]))
+            except shared.Problem as e:return self.send(e.status,{'error':e.message})
+        if path=='/api/post-history':
+            try:
+                q=parse_qs(urlparse(self.path).query);kind=q.get('kind',[''])[0];rid=q.get('id',[''])[0];cursor=int(q.get('before',['0'])[0])
+                with db() as c:return self.send(200,post_history.read(c,user,kind,rid,cursor))
+            except shared.Problem as e:return self.send(e.status,{'error':e.message})
+            except ValueError:return self.send(400,{'error':'Invalid history cursor.'})
         if path=='/api/me':return self.send(200,{'user':{'id':user['uid'],'username':user['username'],'name':user['name'],'profile':json.loads(user['profile'])} if user else None,'csrf':user['csrf'] if user else None})
         if path in ('/api/shared','/api/community','/api/comments','/api/my-content','/api/version') and not user:return self.send(401,{'error':'Sign in with Discord to view member content.'})
         if path=='/api/version':
@@ -172,6 +218,7 @@ class Handler(BaseHTTPRequestHandler):
                 try:shared.record(c,section,item)
                 except shared.Problem:return self.send(404,{'error':shared.WAITING})
                 rows=[dict(x) for x in c.execute('SELECT comments.*,users.name AS author FROM comments JOIN users ON uid=users.id WHERE target=? ORDER BY created',(target,))]
+                rows=discussions.enrich(c,rows)
             return self.send(200,{'comments':rows})
         return self.send(404,{'error':'Not found'})
     def do_POST(self):
@@ -182,7 +229,7 @@ class Handler(BaseHTTPRequestHandler):
         if not permit_write(user['uid']):return self.send(429,{'error':'Too many changes. Please wait a minute.'},{'Retry-After':'60'})
         try:
             n=int(self.headers.get('Content-Length','0'))
-            if not 0<n<=32768:return self.send(413,{'error':'Request too large.'})
+            if not 0<n<=(28*1024*1024 if urlparse(self.path).path in ('/api/comments','/api/proposals','/api/chat') else 32768):return self.send(413,{'error':'Request too large.'})
             data=json.loads(self.rfile.read(n));path=urlparse(self.path).path
             if not isinstance(data,dict):raise ValueError()
             def field(key,limit,required=True):
@@ -191,14 +238,27 @@ class Handler(BaseHTTPRequestHandler):
                 return val.strip()
             with db() as c:
                 c.execute('BEGIN IMMEDIATE')
+                history_event=post_history.previous(c,user,post_history.before(c,path,data))
+                if path=='/api/chat':return self.send(200,chat.change(user,data))
+                if path=='/api/proposals':
+                    result=proposal_images.save(c,user,data,CONFIG)
+                    post_history.after(c,user,history_event,result)
+                    c.commit()
+                    return self.send(200,{'ok':True,**result})
                 if path=='/api/delete':
                     privacy.remove(c,user['uid'],data)
+                    post_history.after(c,user,history_event)
                     c.commit()
                     if data.get('kind')=='Account':
                         with MEMBERSHIP_LOCK:MEMBERSHIP.pop(user['token'],None)
                     return self.send(200,{'ok':True})
+                if path=='/api/comment-vote':
+                    discussions.vote(c,user,data)
+                    post_history.after(c,user,history_event)
+                    return self.send(200,{'ok':True})
                 if path=='/api/shared':
                     result=shared.mutate(c,user,data,CONFIG)
+                    post_history.after(c,user,history_event,result)
                     c.commit()
                     return self.send(200,{'ok':True,**result})
                 if path=='/api/logout':
@@ -229,15 +289,9 @@ class Handler(BaseHTTPRequestHandler):
                         c.execute('INSERT INTO posts(id,uid,title,body,category,created,details) VALUES(?,?,?,?,?,?,?)',(pid,user['uid'],title,body,category,time.time(),json.dumps(details)))
                     shared.event(c,user['uid'],'Ideas',pid,'Posts','saved an idea')
                 elif path=='/api/comments':
-                    target=field('target',180);body=field('body',4000)
-                    section,separator,target_id=target.partition(':')
-                    if not separator or section not in shared.KINDS:raise ValueError()
-                    shared.record(c,section,target_id)
-                    recent=c.execute('SELECT COUNT(*) FROM comments WHERE uid=? AND created>?',(user['uid'],time.time()-60)).fetchone()[0]
-                    if recent>=15:return self.send(429,{'error':'Please wait a minute before adding more comments.'})
-                    c.execute('INSERT INTO comments VALUES(?,?,?,?,?)',(secrets.token_hex(12),user['uid'],target,body,time.time()))
-                    shared.event(c,user['uid'],section,target_id,'Comments','commented',body)
+                    discussions.create(c,user,data)
                 else:return self.send(404,{'error':'Not found'})
+                post_history.after(c,user,history_event)
             return self.send(200,{'ok':True})
         except shared.Problem as e:return self.send(e.status,{'error':e.message})
         except sqlite3.Error:return self.send(503,{'error':'The save did not complete. Please retry.'})

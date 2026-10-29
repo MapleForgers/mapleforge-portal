@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Heritage lantern icon">
+  <path d="M23 18V9q0-5 9-5t9 5v9M18 18h28l-4 34H22Zm-2 35h32" fill="none" stroke="#365a52" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m24 23-3 23h22l-3-23Z" fill="#f5d58e" stroke="#95704a" stroke-width="2"/>
+  <path d="M32 29q-6 7-4 12 2 4 5 3 6-2 2-9-1 3-3 3 2-5 0-9Z" fill="#cf7144"/>
+  <path d="M18 20h28M23 52h18" stroke="#365a52" stroke-width="2.7"/>
+</svg>

@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: python3 -m pip install -r requirements.txt
       - run: python3 -m unittest discover -s tests
-      - run: for test in tests/*.cjs; do node "$test"; done
+      - run: for test in tests/*.cjs; do node "$test" || exit; done
       - run: python3 build.py

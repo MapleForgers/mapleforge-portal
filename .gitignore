@@ -31,3 +31,7 @@ node_modules/
 /ideas.json
 /people.json
 /governance.json
+
+.venv/
+.venv-*/
+/gh-auth/

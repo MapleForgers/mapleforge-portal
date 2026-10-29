@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Beaver icon">
+  <path d="M14 45q-8-5-7-16 2-7 10-7 5 0 8 5 7-6 18-2 9 3 10 12l5 4-5 6-10-3q-8 10-21 5l-7 3Z" fill="#a66a4b" stroke="#664638" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M26 43q-6 11-18 10l-3-4q5-8 18-10" fill="#694b3e" stroke="#51382f" stroke-width="2"/>
+  <path d="M43 25q3-6 7-5 3 2 0 7" fill="#a66a4b" stroke="#664638" stroke-width="2"/>
+  <circle cx="45" cy="32" r="1.8" fill="#263e3a"/>
+  <path d="M54 40h5M17 54h5m17-8 5 7h5" fill="none" stroke="#664638" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
