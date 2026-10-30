@@ -14,6 +14,7 @@ seeds='const governanceSeeds='+encode([])+';\nconst peopleSeeds='+encode([])+';\
 commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
 release={'commit':commit,'short':commit[:7]+('-dirty' if dirty else ''),'dirty':dirty}
+modules.insert(modules.index('members') + 1, 'preview')
 js='const PORTAL_BUILD='+json.dumps(release)+';\n'+seeds+'\n'.join((ROOT/'src'/f'{name}.js').read_text() for name in modules)
 css='\n'.join((ROOT/'src'/f'{name}.css').read_text() for name in ['base','community','design-system'])
 html=(ROOT/'src/portal.html').read_text().replace('__STYLES__',css).replace('__SCRIPTS__',js).replace('__IDEAS__',encode([]),1)

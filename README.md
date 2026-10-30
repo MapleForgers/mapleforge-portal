@@ -52,7 +52,9 @@ python3 build.py
 python3 -m http.server 8080 --directory dist
 ```
 
-Open `http://localhost:8080/portal1/`. This local view runs the browser prototype. The live member module activates on `maple-forge.ca` and requires the HTTPS backend described below. A clean build starts without imported community records.
+Open `http://localhost:8080/portal1/`. The static preview includes the full navigation and empty shared boards. It labels shared services as offline; posting, account actions and chat require the configured backend and are unavailable in this preview. Fictional examples remain available where explicitly labelled. The live member module activates on `maple-forge.ca` and requires the HTTPS backend described below. A clean build starts without imported community records.
+
+After pulling an update, rerun `python3 build.py` and refresh the browser. Serving an older `dist/` directory does not pick up source changes automatically. If a previous build showed an empty sidebar with `MF is not defined` in the console, pull the startup fix and rebuild with the commands above.
 
 Private community records must never be embedded in HTML. `--content-dir` is rejected. Imports belong in the restricted database or the protected `IMPORTED_PEOPLE` file, and are read only through authenticated APIs. Generated files are written to `dist/`, which is ignored by Git. Each build cleans only that directory and marks an uncommitted tree with `-dirty`.
 
